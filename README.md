@@ -1,6 +1,8 @@
 # D2RoshTimer
+Press a hotkey, get the in-game time as rosh's death, calculate aegis reclaim, early spawn, late spawn timings and place it in clipboard.
 [Download here.](https://github.com/robuhde/D2RoshTimer/raw/master/Downloads/D2RoshTimer.zip)
 
+This uses valve's gamestate integration which sends data when requested. It is used in many other programs and will never result in a VAC ban, there is absolutely no chance of this. The only thing people may think is that it is somehow unfair, but it is using information available to anyone who wants it and is actively upkept by valve for use.
 
 Run the .exe, a window will pop up where you can set your keybind. Press Save whenever you are ready. After loading into a game and you can see the in-game clock (before or after the horn), press the hotkey when Rosh Falls, the current in game time will be recorded and rosh kill time, aegis reclaim time, rosh early spawn, rosh late spawn will be set on your clipboard. Then open chat and paste (ctrl + v). If you are the one who takes aegis and do it within 4.5 seconds of pressing the hotkey there will be a new time for the aegis reclaim to be more accurate
 

@@ -59,7 +59,7 @@ F10 may not be usable and depends on the system
 Non-activated Numpad keys
 
 ## External Libraries Used:
-Dota2GSI by Antonpup - Updated by me
+Dota2GSI by Antonpup - Updated by [Me](https://github.com/robuhde/Dota2GSI)
 
 Newtonsoft.Json
 

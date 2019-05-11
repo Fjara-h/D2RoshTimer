@@ -16,7 +16,7 @@ C:\Users\<User Account>\AppData\Local\Fjara\D2RoshTimer - Delete D2Rosh Timer fo
 The Gatestate Integration Files are Located within your dota 2 cfg folder:
 ~\dota 2 beta\game\dota\cfg\gamestate_integration
 
-###Current MesssageBox Error Pop-Ups:
+### Current MesssageBox Error Pop-Ups:
 Another instance already running - D2RoshTimer.exe is already running, if not visible in the taskbar/notification area, open Task Manager and manually end task.
 Registry key for Dota 2 not found, cannot create Gamestate Integration file - 32-bit System or dota and/or steam are not installed.
 GameStateListener could not start. Try running as Administrator - Missing/Incorrect .cfg file, the server/coordinator are offline, or program needs to be run as administrator.
@@ -25,7 +25,7 @@ GSI failed to update currentTime - Missing/Incorrect .cfg file or server/coordin
 Dota 2 not running - dota2.exe not running or detected.
 You are running again to soon - There is an in-built pause that stops it from running for 4 seconds between runs.
 
-###Issues
+### Issues
 If you run into an issue please let me know by posting an issue here or message me on twitter @fjara_ or on reddit /u/Fjarah
 Please try to be thorough in explaining what happened, how, if you are able to reproduce it and your system specs. There is a possibility slower systems may have an issue with handling threads slowly. 
 
@@ -34,18 +34,18 @@ Please try to be thorough in explaining what happened, how, if you are able to r
 .Net Framework 4.5.2 or higher
 Dota 2 & Steam Installed
 
-##Unusable Keys for main key:
-###Reserved:
+## Unusable Keys for main key:
+### Reserved:
 Left and Right Control
 Left and Right Alt
 Left and Right Windows Key
 Left and Right Shift
-###Disabled:
+### Disabled:
 Print Screen, Insert, PageUp, PageDown, End, Delete, Backspace, Up Arrow, Down Arrow, Left Arrow, Right Arrow
 F10 may not be usable and depends on the system
 Non-activated Numpad keys
 
-##External Libraries Used:
+## External Libraries Used:
 Dota2GSI by Antonpup - Updated by me
 Newtonsoft.Json
 Hardcodet.NotifyIcon.Wpf by Philipp Sumi

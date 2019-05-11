@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.28803.352
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "D2RoshTimer", "D2RoshTimer.csproj", "{139C4854-F665-4D9F-8375-55F7253DC9F8}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{139C4854-F665-4D9F-8375-55F7253DC9F8}.Debug|Any CPU.ActiveCfg = Release|Any CPU
+		{139C4854-F665-4D9F-8375-55F7253DC9F8}.Debug|Any CPU.Build.0 = Release|Any CPU
+		{139C4854-F665-4D9F-8375-55F7253DC9F8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{139C4854-F665-4D9F-8375-55F7253DC9F8}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {508B4ECB-1FF5-4F93-8B12-A2B41B8CB4B8}
+	EndGlobalSection
+EndGlobal

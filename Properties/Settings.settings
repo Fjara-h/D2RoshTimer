@@ -18,5 +18,8 @@
       <Value Profile="(Default)">&lt;?xml version="1.0" encoding="utf-16"?&gt;
 &lt;Key&gt;O&lt;/Key&gt;</Value>
     </Setting>
+    <Setting Name="ErrorDisplay" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

@@ -16,6 +16,7 @@
 		<CheckBox Style="{DynamicResource CheckBoxStyle}" Name="shiftCheckbox" FlowDirection="RightToLeft" Unchecked="modifierCheckBoxChange" Checked="modifierCheckBoxChange" Content="Shift" Canvas.Top="52" Canvas.Right="2"/>
 		<CheckBox Style="{DynamicResource CheckBoxStyle}" Name="windowsCheckbox" FlowDirection="RightToLeft" Unchecked="modifierCheckBoxChange" Checked="modifierCheckBoxChange" Content="Windows" Canvas.Top="68" Canvas.Right="2"/>
 		<Button Style="{DynamicResource ButtonStyle}" Name="defaultButton" Click="default_Click" Content="Reset to Default" Background ="LightGray" BorderThickness="1" BorderBrush="DarkGray" Height="30" Width="90" Canvas.Bottom="3" Canvas.Left="3"/>
+		<Button Style="{DynamicResource ButtonStyle}" Name="errorButton" Click="error_Click" Content="" Background ="LightGray" BorderThickness="1" BorderBrush="DarkGray" Height="30" Width="120" Canvas.Bottom="3" Canvas.Left="108"/>
 		<Button Style="{DynamicResource ButtonStyle}" Name="okButton" Click="ok_Click" Content="Save" Background ="LightGray" BorderThickness="1" BorderBrush="DarkGray" Height="30" Width="50" Canvas.Bottom="3" Canvas.Right="3"/>
 	</Canvas>
 </Window>

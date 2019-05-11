@@ -1,4 +1,5 @@
-﻿using Hardcodet.Wpf.TaskbarNotification;
+﻿using D2RoshTimer.Properties;
+using Hardcodet.Wpf.TaskbarNotification;
 using System.Threading;
 using System.Windows;
 
@@ -24,7 +25,9 @@ namespace D2RoshTimer {
 				shouldRelease = true;
 			}
 			if(shouldClose) {
-				MessageBox.Show("Another instance already running.");
+				if(Settings.Default.ErrorDisplay) {
+					MessageBox.Show("Another instance already running.");
+				}
 				App.Current.Shutdown();
 			}
 			base.OnStartup(e);

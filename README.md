@@ -5,10 +5,9 @@
 
 I recommend trying first with 2. If you understand when to use and how to use it, download 1. I will add an option soon to the main window to enable/disable error popups so that there is only 1 download.
 
-Run the .exe, a window will pop up where you can set your keybind. Press Save whenever you are ready. After loading into a game and you can see the in-game clock (before or after the horn), press the hotkey when Rosh Falls/Hero Picks up Aegis Kill time, aegis reclaim time, rosh early spawn, rosh late spawn will be set on your clipboard. Then open chat and paste (ctrl + v). 
+Run the .exe, a window will pop up where you can set your keybind. Press Save whenever you are ready. After loading into a game and you can see the in-game clock (before or after the horn), press the hotkey when Rosh Falls, the current in game time will be recorded and rosh kill time, aegis reclaim time, rosh early spawn, rosh late spawn will be set on your clipboard. Then open chat and paste (ctrl + v). If you are the one who takes aegis and do it within a few seconds of pressing the hotkey there will be a seperate timer for the aegis reclaim because of that.
 
-Unfortunately if players do not pick up aegis shortly after rosh dies, then the reclaim timer will be off. GSI for non-spectator/observer games (you are the player), there is no ability to aquire information about when other heroes pick up aegis.
-I will be adding in support to edit aegis reclaim time if you are the hero that picks it up.
+Unfortunately if players do not pick up aegis shortly after rosh dies, then the reclaim timer will be off. GSI for non-spectator/observer games (you are playing), there is no ability to aquire information about when other heroes pick up aegis.
 
 Only 1 instance can run at once. 
 If you want to delete the files this program creates, the program settings are here:
@@ -68,4 +67,3 @@ Hardcodet.NotifyIcon.Wpf by Philipp Sumi
 NHotkey.Wpf by Thomas Levesque
 
 Fody & Costura.Fody
-

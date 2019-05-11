@@ -169,7 +169,7 @@ namespace D2RoshTimer {
 		private void hotKeyManagerPressed(object sender, EventArgs e) {
 			TimeSpan offset = new TimeSpan(0, 0, 4);
 			Process[] proc = Process.GetProcessesByName("dota2");
-			if(proc.Length > 0 && proc[0].ToString().Equals("System.Diagnostics.Process (dota2)") && DateTime.Compare(DateTime.Now, lastRun.Add(offset)) >= 0 && (gamestate == DOTA_GameState.DOTA_GAMERULES_STATE_GAME_IN_PROGRESS || gamestate == DOTA_GameState.DOTA_GAMERULES_STATE_PRE_GAME)) {
+			if(proc.Length > 0 && proc[0].ToString().Equals("System.Diagnostics.Process (dota2)") && DateTime.Compare(DateTime.Now, lastRun.Add(offset)) >= 0) {
 				GameStateListener gsl;
 				using(gsl = new GameStateListener(42345)) {
 					gsl.NewGameState += onNewGameState;
@@ -181,7 +181,7 @@ namespace D2RoshTimer {
 					gsl.NewGameState += onNewGameState;
 					tries = 0;
 				}
-				if(currentTime > -200) {
+				if(currentTime > -200 && (gamestate == DOTA_GameState.DOTA_GAMERULES_STATE_GAME_IN_PROGRESS || gamestate == DOTA_GameState.DOTA_GAMERULES_STATE_PRE_GAME)) {
 					string killTime = "", aegisTime = "", earlyTime = "", lateTime = "";
 					int minutes = currentTime / 60;
 					int seconds = Math.Abs(currentTime % 60);
@@ -224,6 +224,7 @@ namespace D2RoshTimer {
 						}
 					}
 				}
+				return;
 			}
 		}
 

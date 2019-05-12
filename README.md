@@ -1,18 +1,20 @@
 # D2RoshTimer
-Press a hotkey, get the in-game time as rosh's death, calculate aegis reclaim, early spawn, late spawn timings and place it in clipboard.
-[Download here.](https://github.com/robuhde/D2RoshTimer/raw/master/Downloads/D2RoshTimer.zip)
+Press a hotkey, get the in-game time as rosh's death, calculate aegis reclaim, early spawn, late spawn timings and place it in clipboard for you to paste.
+
+[Download](https://github.com/robuhde/D2RoshTimer/raw/master/Downloads/D2RoshTimer.exe)
 
 ![Example](https://raw.githubusercontent.com/robuhde/D2RoshTimer/master/Resources/Sample.png)
 
 This uses valve's gamestate integration which sends data when requested. It is used in many other programs and will never result in a VAC ban, there is absolutely no chance of this. The only thing people may think is that it is somehow unfair, but it is using information available to anyone who wants it and is actively upkept by valve for use.
 
-Run the .exe, a window will pop up where you can set your keybind. Press Save whenever you are ready. After loading into a game and you can see the in-game clock (before or after the horn), press the hotkey when Rosh Falls, the current in game time will be recorded and rosh kill time, aegis reclaim time, rosh early spawn, rosh late spawn will be set on your clipboard. Then open chat and paste (ctrl + v). If you are the one who takes aegis and do it within 4.5 seconds of pressing the hotkey there will be a new time for the aegis reclaim to be more accurate
+Run the .exe, a window will pop up where you can set your keybind. Press Save whenever you are ready. After loading into a game and you can see the in-game clock (before or after the horn), press the hotkey when Rosh Falls, the current in game time will be recorded and rosh kill time, aegis reclaim time, rosh early spawn, rosh late spawn will be set on your clipboard. Then open chat and paste (ctrl + v). If you are the one who takes aegis and do it within 4.5 seconds of pressing the hotkey there will be a new time for the aegis reclaim to be more accurate. Only 1 instance can run at any point.
 
 The timer is based on the clock in-game when the hotkey is pressed, aegis reclaim is if you already have aegis in your inventory or if you pick it up within 4.5 seconds of pressing the hotkey otherwise it is just +5 minutes to kill time, it is not when rosh is killed because player GSI doesn't have the same information available as a spectator. 
 
 If for some reason the gamestate_integration_roshtimer.cfg  cannot be created in the dota 2 beta folder. [Download this and copy it to where your "dota 2 beta" folder is.](https://github.com/robuhde/D2RoshTimer/raw/master/Downloads/Manual%20cfg%20placement.zip)
 
-Only 1 instance can run at once. 
+## Files Created
+
 If you want to delete the files this program creates, the program settings are here:
 
 C:\Users\<User Account>\AppData\Local\Fjara\D2RoshTimer - Delete D2Rosh Timer folder
@@ -23,6 +25,7 @@ The Gatestate Integration Files are Located within your dota 2 cfg folder:
 
 
 ### Current MesssageBox Error Pop-Ups:
+
 Another instance already running - D2RoshTimer.exe is already running, if not visible in the taskbar/notification area, open Task Manager and manually end task.
 
 Registry key for Dota 2 not found, cannot create Gamestate Integration file - 32-bit System or dota and/or steam are not installed.
@@ -38,6 +41,7 @@ Dota 2 not running - dota2.exe not running or detected.
 You are running again to soon - There is an in-built pause that stops it from running for 4 seconds between runs.
 
 ### Issues
+
 D2RoshTimer should only close when you right click on it in the notification taskbar and select "Exit". If it does close prior to that, then there is some issue and I would recommend turning on error messages if not already. Also, If you run into an issue such as this please let me know by posting an issue here or message me on twitter @fjara_ or on reddit /u/Fjarah
 
 Please try to be thorough in explaining what happened, how, if you are able to reproduce it and your system specs. There is a possibility slower systems may have an issue with handling threads slowly. 

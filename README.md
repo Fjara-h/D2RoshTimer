@@ -65,6 +65,7 @@ Left and Right Shift
 
 ### Disabled:
 Print Screen, Insert, PageUp, PageDown, End, Delete, Backspace, Up Arrow, Down Arrow, Left Arrow, Right Arrow
+
 F10 may not be usable and depends on the system
 
 Non-activated Numpad keys

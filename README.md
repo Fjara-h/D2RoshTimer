@@ -14,9 +14,13 @@ If for some reason the gamestate_integration_roshtimer.cfg  cannot be created in
 
 Only 1 instance can run at once. 
 If you want to delete the files this program creates, the program settings are here:
+
 C:\Users\<User Account>\AppData\Local\Fjara\D2RoshTimer - Delete D2Rosh Timer folder
+
 The Gatestate Integration Files are Located within your dota 2 cfg folder:
+
 ~\dota 2 beta\game\dota\cfg\gamestate_integration
+
 
 ### Current MesssageBox Error Pop-Ups:
 Another instance already running - D2RoshTimer.exe is already running, if not visible in the taskbar/notification area, open Task Manager and manually end task.

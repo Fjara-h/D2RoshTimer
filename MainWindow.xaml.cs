@@ -17,7 +17,9 @@ using NHotkey.Wpf;
 using Dota2GSI.Nodes;
 
 namespace D2RoshTimer {
+
 	public partial class MainWindow : Window {
+
 		private DateTime lastRun = DateTime.MinValue;
 		private int currentTime = -200;
 		private int roshCurrentTime = -200;
@@ -39,6 +41,33 @@ namespace D2RoshTimer {
 			EventManager.RegisterClassHandler(typeof(TextBox), TextBox.PreviewMouseLeftButtonDownEvent, new MouseButtonEventHandler(onGotMouseCapture));
 		}
 
+		// Pressing on non-selectable UI causes drag if held and moved
+		protected override void OnMouseLeftButtonDown(MouseButtonEventArgs e) {
+			base.OnMouseLeftButtonDown(e);
+			this.DragMove();
+		}
+
+		// When selecting the textbox to enter new key, clear it
+		private void onGotMouseCapture(object sender, MouseEventArgs e) {
+			keyTextbox.Text = "";
+		}
+
+		// Take any keypress for main key except for both alt, both control, both shift as they are modifier keys. Set as new keybind and update UI (Do I need to block windows key?)
+		private void keyTextbox_KeyDown(object sender, KeyEventArgs e) {
+			if(e.Key != Key.LeftAlt && e.Key != Key.RightAlt && e.Key != Key.LeftCtrl && e.Key != Key.RightCtrl && e.Key != Key.LeftShift
+												&& e.Key != Key.RightShift && e.Key != Key.RWin && e.Key != Key.LWin && e.Key != Key.System) {
+				Settings.Default.KeyBind = e.Key;
+				printKeys(Settings.Default.KeyBind);
+			}
+		}
+
+		// Catch and skip copy/cut/paste commands
+		private void keyTextBox_PreviewExecuted(object sender, ExecutedRoutedEventArgs e) {
+			if(e.Command == ApplicationCommands.Copy || e.Command == ApplicationCommands.Cut || e.Command == ApplicationCommands.Paste) {
+				e.Handled = true;
+			}
+		}
+
 		// Set the Checkboxes without triggering modifierCheckBoxChange
 		private void quietSetCheckbox() {
 			IEnumerable<CheckBox> collection = MainCanvas.Children.OfType<CheckBox>();
@@ -56,37 +85,7 @@ namespace D2RoshTimer {
 
 		// Output current keybind to textbox - Special to Output the key as is on Keyboard, not Key Name as a variable.
 		private void printKeys(Key key) {
-			int virtKey = KeyInterop.VirtualKeyFromKey(key);
-			byte[] keyboardState = new byte[256];
-			GetKeyboardState(keyboardState);
-			uint scanCode = MapVirtualKey((uint)virtKey, mapType.MAPVK_VK_TO_VSC);
-			StringBuilder stringBuilder = new StringBuilder(2);
-			int result = ToUnicode((uint)virtKey, scanCode, keyboardState, stringBuilder, stringBuilder.Capacity, 0);
-			switch(result) {
-				case -1:
-				case 0:
-					keyTextbox.Text = key.ToString();
-					break;
-				case 1: {
-					if(key == Key.Enter) {
-						keyTextbox.Text = "Enter";
-						break;
-					}
-					if(key == Key.Tab) {
-						keyTextbox.Text = "Tab";
-						break;
-					}
-					keyTextbox.Text = stringBuilder[0].ToString().ToUpper();
-					if(key.ToString().StartsWith("NumPad") || key.ToString().Equals("Multiply") || key.ToString().Equals("Divide") || key.ToString().Equals("Add") || key.ToString().Equals("Subtract")) {
-						keyTextbox.AppendText("(NumPad)");
-					}
-					break;
-				}
-				default: {
-					keyTextbox.Text = stringBuilder[0].ToString().ToUpper();
-					break;
-				}
-			}
+			keyTextbox.Text = getRealKey(key);
 			if(Settings.Default.AltModifier) {
 				keyTextbox.AppendText(" + Alt");
 			}
@@ -100,7 +99,60 @@ namespace D2RoshTimer {
 				keyTextbox.AppendText(" + Windows");
 			}
 			Keyboard.ClearFocus();
+		}
+
+		// Convert Key object identifiers to human understandable/common use terms
+		private string getRealKey(Key key) {
+			int virtKey = KeyInterop.VirtualKeyFromKey(key);
+			byte[] keyboardState = new byte[256];
+			GetKeyboardState(keyboardState);
+			uint scanCode = MapVirtualKey((uint)virtKey, mapType.MAPVK_VK_TO_VSC);
+			StringBuilder stringBuilder = new StringBuilder(2);
+			int result = ToUnicode((uint)virtKey, scanCode, keyboardState, stringBuilder, stringBuilder.Capacity, 0);
+			string finalKey = "";
+			switch(result) {
+				case -1:
+				case 0:
+					finalKey = key.ToString();
+					break;
+				case 1: {
+					if(key == Key.Enter) {
+						finalKey = "Enter";
+						break;
+					}
+					if(key == Key.Tab) {
+						finalKey = "Tab";
+						break;
+					}
+					finalKey = stringBuilder[0].ToString().ToUpper();
+					if(key.ToString().StartsWith("NumPad") || key.ToString().Equals("Multiply") || key.ToString().Equals("Divide") || key.ToString().Equals("Add") || key.ToString().Equals("Subtract")) {
+						finalKey += "(NumPad)";
+					}
+					break;
+				}
+				default: {
+					finalKey = stringBuilder[0].ToString().ToUpper();
+					break;
+				}
+			}
 			stringBuilder = null;
+			return finalKey;
+		}
+
+		// Any time a user manually changes a checkbok for modifier keys, update settings and UI
+		private void modifierCheckBoxChange(object sender, RoutedEventArgs e) {
+			CheckBox box = (CheckBox)sender;
+			bool flag = box.IsChecked.Value;
+			if(box.Content.Equals("Alt")) {
+				Settings.Default.AltModifier = flag;
+			} else if(box.Content.Equals("Control")) {
+				Settings.Default.ControlModifier = flag;
+			} else if(box.Content.Equals("Shift")) {
+				Settings.Default.ShiftModifier = flag;
+			} else {
+				Settings.Default.WindowsModifier = flag;
+			}
+			printKeys(Settings.Default.KeyBind);
 		}
 
 		// Used for Dota2GSI - Create config file in dota cfg folder to access json data from local dota client.
@@ -139,47 +191,11 @@ namespace D2RoshTimer {
 			}
 		}
 
-		// When selecting the textbox to enter new key, clear it
-		private void onGotMouseCapture(object sender, MouseEventArgs e) {
-			keyTextbox.Text = "";
-		}
-
-		// Take any keypress for main key except for both alt, both control, both shift as they are modifier keys. Set as new keybind and update UI (Do I need to block windows key?)
-		private void keyTextbox_KeyDown(object sender, KeyEventArgs e) {
-			if(e.Key != Key.LeftAlt && e.Key != Key.RightAlt && e.Key != Key.LeftCtrl && e.Key != Key.RightCtrl && e.Key != Key.LeftShift
-												&& e.Key != Key.RightShift && e.Key != Key.RWin && e.Key != Key.LWin && e.Key != Key.System) {
-				Settings.Default.KeyBind = e.Key;
-				printKeys(Settings.Default.KeyBind);
-			}
-		}
-
-		// Catch and skip copy/cut/paste commands
-		private void keyTextBox_PreviewExecuted(object sender, ExecutedRoutedEventArgs e) {
-			if(e.Command == ApplicationCommands.Copy || e.Command == ApplicationCommands.Cut || e.Command == ApplicationCommands.Paste) {
-				e.Handled = true;
-			}
-		}
-
-		// Any time a user manually changes a checkbok for modifier keys, update settings and UI
-		private void modifierCheckBoxChange(object sender, RoutedEventArgs e) {
-			CheckBox box = (CheckBox)sender;
-			bool flag = box.IsChecked.Value;
-			if(box.Content.Equals("Alt")) {
-				Settings.Default.AltModifier = flag;
-			} else if(box.Content.Equals("Control")) {
-				Settings.Default.ControlModifier = flag;
-			} else if(box.Content.Equals("Shift")) {
-				Settings.Default.ShiftModifier = flag;
-			} else {
-				Settings.Default.WindowsModifier = flag;
-			}
-			printKeys(Settings.Default.KeyBind);
-		}
-
 		// When registered hotkey is pressed, calculate minutes and seconds from currentTime, construct output and copy to clipboard
 		private void hotKeyManagerPressed(object sender, EventArgs e) {
 			TimeSpan offset = new TimeSpan(0, 0, 4);
 			Process[] proc = Process.GetProcessesByName("dota2");
+			// If it's been more than 4 seconds since last press, run
 			if(proc.Length > 0 && proc[0].ToString().Equals("System.Diagnostics.Process (dota2)") && DateTime.Compare(DateTime.Now, lastRun.Add(offset)) >= 0) {
 				GameStateListener gsl;
 				using(gsl = new GameStateListener(42345)) {
@@ -188,6 +204,7 @@ namespace D2RoshTimer {
 						MessageBox.Show("GameStateListener could not start. Try running as Administrator.");
 					}
 					int tries = 0;
+					// Listen to gamestate data for 4.5 seconds or until user picks up aegis themselves
 					while(tries < 30 && !aegisLock) {
 						Thread.Sleep(150);
 						tries++;
@@ -195,11 +212,13 @@ namespace D2RoshTimer {
 					gsl.NewGameState += onNewGameState;
 					tries = 0;
 				}
+				// If game time has been updated and gamestate is where it actually matters, run
 				if(currentTime > -200 && (gamestate == DOTA_GameState.DOTA_GAMERULES_STATE_GAME_IN_PROGRESS || gamestate == DOTA_GameState.DOTA_GAMERULES_STATE_PRE_GAME)) {
 					string killTime = "", aegisTime = "", earlyTime = "", lateTime = "";
 					int minutes = roshCurrentTime / 60;
 					int seconds = Math.Abs(roshCurrentTime % 60);
 					lastRun = DateTime.Now;
+					// If rosh was taken after the horn (0:00 clock time), otherwise its before and special math is needed
 					if(roshCurrentTime >= 0) {
 						killTime = "Kill " + minutes + ":" + seconds.ToString("D2", CultureInfo.InvariantCulture) + " |  ";
 						if(hasAegis) {
@@ -235,6 +254,7 @@ namespace D2RoshTimer {
 						lateTime = "Late Spawn " + newMinutes + ":" + newSeconds.ToString("D2", CultureInfo.InvariantCulture) + " ";
 					}
 					string data = killTime + aegisTime + earlyTime + lateTime;
+					// Reset values to ensure next use has fresh values.
 					currentTime = -200;
 					roshCurrentTime = -200;
 					aegisCurrentTime = -200;
@@ -242,6 +262,7 @@ namespace D2RoshTimer {
 					hasAegis = false;
 					roshLock = false;
 					aegisLock = false;
+					// Try to set clipboard data, occassionally fails for unknown reasons, try again a few times 
 					for(int i = 0;i < 10;i++) {
 						try {
 							Clipboard.SetDataObject(data);
@@ -268,12 +289,14 @@ namespace D2RoshTimer {
 		// As the game updates, repeatedly get in-game time as seconds.
 		private void onNewGameState(GameState gs) {
 			currentTime = gs.Map.ClockTime;
+			// Lock on first instance of game time, so excess runs do not update it causing timer to be off
 			if(!roshLock) {
 				roshCurrentTime = currentTime;
 				roshLock = true;
 			}
 			gamestate = gs.Map.GameState;
 			hasAegis = gs.Items.InventoryContains("item_aegis");
+			// If user picks up aegis within the time frame then use an updated timer for aegis expiration timer
 			if(hasAegis && !aegisLock) {
 				aegisCurrentTime = currentTime;
 				aegisLock = true;
@@ -306,18 +329,19 @@ namespace D2RoshTimer {
 
 		// Enable/Disable Error Popups
 		private void errorSwitch() {
-			if(errorButton.Content.Equals("Disable Error Popups")) {
+			string disable = "Disable Error Popups", enable = "Enable Error Popups";
+			if(errorButton.Content.Equals(disable)) {
 				Settings.Default.ErrorDisplay = false;
-				errorButton.Content = "Enable Error Popups";
-			} else if(errorButton.Content.Equals("Enable Error Popups")) {
+				errorButton.Content = enable;
+			} else if(errorButton.Content.Equals(enable)) {
 				Settings.Default.ErrorDisplay = true;
-				errorButton.Content = "Disable Error Popups";
+				errorButton.Content = disable;
 			} else if(Settings.Default.ErrorDisplay) {
 				Settings.Default.ErrorDisplay = true;
-				errorButton.Content = "Disable Error Popups";
+				errorButton.Content = disable;
 			} else {
 				Settings.Default.ErrorDisplay = false;
-				errorButton.Content = "Enable Error Popups";
+				errorButton.Content = enable;
 			}
 		}
 

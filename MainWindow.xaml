@@ -5,18 +5,18 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:D2RoshTimer"
         mc:Ignorable="d"
-        Title="MainWindow" AllowsTransparency="True" WindowStyle="None" ResizeMode="NoResize" Icon="Resources/D2RoshTimer.ico" d:DesignHeight="130" d:DesignWidth="300" Height="130" Width="300" Background="White" BorderBrush="SlateGray" BorderThickness="1">
-	<Canvas x:Name="MainCanvas" HorizontalAlignment="Center" VerticalAlignment="Center" Height="130" Width="300">
-		<Label Name="titleLabel" Content="Click Below to Change Binding" FontFamily="Arial" FontSize="16" Height="30" Width="228" HorizontalContentAlignment="Center" Margin ="-5,-7,0,0" Canvas.Top="3" Canvas.Left="3" Focusable="True"/>
+        Title="MainWindow" AllowsTransparency="True" WindowStyle="None" ResizeMode="NoResize" Icon="Resources/D2RoshTimer.ico" Background="White" BorderBrush="SlateGray" BorderThickness="1" d:DesignHeight="130" d:DesignWidth="300" Height="130" Width="300">
+	<Canvas x:Name="MainCanvas" Height="129" Width="299">
+		<Label Style="{DynamicResource LabelStyle}" Name="titleLabel" Content="Click Below to Change Binding" Height="18" Width="218" Canvas.Top="2" Canvas.Left="3"/>
 		<Viewbox StretchDirection="DownOnly" Stretch="Uniform" Height="75" Width="225" Canvas.Top="20" Canvas.Left="3">
-			<TextBox Name="keyTextbox" KeyDown="keyTextbox_KeyDown" CommandManager.PreviewExecuted="keyTextBox_PreviewExecuted" ContextMenu="{x:Null}" Text="" FontSize="20" TextWrapping="Wrap" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Background ="LightGray" BorderThickness="1" BorderBrush="DarkGray" Height="75" Width="225"/>
+			<TextBox Style="{DynamicResource TextBoxStyle}" Name="keyTextbox" KeyDown="keyTextbox_KeyDown" CommandManager.PreviewExecuted="keyTextBox_PreviewExecuted" Height="75" Width="225" />
 		</Viewbox>
-		<CheckBox Style="{DynamicResource CheckBoxStyle}" Name="altCheckbox" FlowDirection="RightToLeft" Unchecked="modifierCheckBoxChange" Checked="modifierCheckBoxChange" Content="Alt" Canvas.Top="20" Canvas.Right="2"/>
-		<CheckBox Style="{DynamicResource CheckBoxStyle}" Name="controlCheckbox" FlowDirection="RightToLeft" Unchecked="modifierCheckBoxChange" Checked="modifierCheckBoxChange" Content="Control" Canvas.Top="36" Canvas.Right="2"/>
-		<CheckBox Style="{DynamicResource CheckBoxStyle}" Name="shiftCheckbox" FlowDirection="RightToLeft" Unchecked="modifierCheckBoxChange" Checked="modifierCheckBoxChange" Content="Shift" Canvas.Top="52" Canvas.Right="2"/>
-		<CheckBox Style="{DynamicResource CheckBoxStyle}" Name="windowsCheckbox" FlowDirection="RightToLeft" Unchecked="modifierCheckBoxChange" Checked="modifierCheckBoxChange" Content="Windows" Canvas.Top="68" Canvas.Right="2"/>
-		<Button Style="{DynamicResource ButtonStyle}" Name="defaultButton" Click="default_Click" Content="Reset to Default" Background ="LightGray" BorderThickness="1" BorderBrush="DarkGray" Height="30" Width="90" Canvas.Bottom="3" Canvas.Left="3"/>
-		<Button Style="{DynamicResource ButtonStyle}" Name="errorButton" Click="error_Click" Content="" Background ="LightGray" BorderThickness="1" BorderBrush="DarkGray" Height="30" Width="120" Canvas.Bottom="3" Canvas.Left="108"/>
-		<Button Style="{DynamicResource ButtonStyle}" Name="okButton" Click="ok_Click" Content="Save" Background ="LightGray" BorderThickness="1" BorderBrush="DarkGray" Height="30" Width="50" Canvas.Bottom="3" Canvas.Right="3"/>
+		<CheckBox Style="{DynamicResource CheckBoxStyle}" Name="altCheckbox" Unchecked="modifierCheckBoxChange" Checked="modifierCheckBoxChange" Content="Alt" Canvas.Top="20" Canvas.Right="2"/>
+		<CheckBox Style="{DynamicResource CheckBoxStyle}" Name="controlCheckbox" Unchecked="modifierCheckBoxChange" Checked="modifierCheckBoxChange" Content="Control" Canvas.Top="36" Canvas.Right="2"/>
+		<CheckBox Style="{DynamicResource CheckBoxStyle}" Name="shiftCheckbox" Unchecked="modifierCheckBoxChange" Checked="modifierCheckBoxChange" Content="Shift" Canvas.Top="52" Canvas.Right="2"/>
+		<CheckBox Style="{DynamicResource CheckBoxStyle}" Name="windowsCheckbox" Unchecked="modifierCheckBoxChange" Checked="modifierCheckBoxChange" Content="Windows" Canvas.Top="68" Canvas.Right="2"/>
+		<Button Style="{DynamicResource ButtonStyle}" Name="defaultButton" Click="default_Click" Content="Reset to Default" Height="30" Width="90" Canvas.Bottom="3" Canvas.Left="3"/>
+		<Button Style="{DynamicResource ButtonStyle}" Name="errorButton" Click="error_Click" Content="" Height="30" Width="120" Canvas.Bottom="3" Canvas.Left="108"/>
+		<Button Style="{DynamicResource ButtonStyle}" Name="okButton" Click="ok_Click" Content="Save" Height="30" Width="50" Canvas.Bottom="3" Canvas.Right="3"/>
 	</Canvas>
 </Window>

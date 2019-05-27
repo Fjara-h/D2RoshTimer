@@ -7,6 +7,7 @@
 	Hardcodet.Wpf.TaskbarNotification
 	Dota2GSI
 	Newtonsoft.Json
+	WindowsInput
     </IncludeAssemblies>
   </Costura>
 </Weavers>

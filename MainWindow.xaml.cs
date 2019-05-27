@@ -15,6 +15,8 @@ using System.Threading;
 using System.Runtime.InteropServices;
 using NHotkey.Wpf;
 using Dota2GSI.Nodes;
+using WindowsInput;
+using WindowsInput.Native;
 
 namespace D2RoshTimer {
 
@@ -193,6 +195,15 @@ namespace D2RoshTimer {
 
 		// When registered hotkey is pressed, calculate minutes and seconds from currentTime, construct output and copy to clipboard
 		private void hotKeyManagerPressed(object sender, EventArgs e) {
+			// this enables use of the key IF no modifiers are enabled.
+			if(!Settings.Default.AltModifier && !Settings.Default.ControlModifier && !Settings.Default.ShiftModifier && !Settings.Default.WindowsModifier) {
+				InputSimulator keySim = new InputSimulator();
+				StringBuilder charPressed = new StringBuilder(256);
+				ToUnicode((uint)KeyInterop.VirtualKeyFromKey(Settings.Default.KeyBind), 0, new byte[256], charPressed, charPressed.Capacity, 0);
+				keySim.Keyboard.TextEntry(charPressed.ToString());
+				keySim = null;
+				charPressed = null;
+			}
 			TimeSpan offset = new TimeSpan(0, 0, 1);
 			Process[] proc = Process.GetProcessesByName("dota2");
 			// If it's been more than 4 seconds since last press, run

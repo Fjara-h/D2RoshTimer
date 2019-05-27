@@ -193,7 +193,7 @@ namespace D2RoshTimer {
 
 		// When registered hotkey is pressed, calculate minutes and seconds from currentTime, construct output and copy to clipboard
 		private void hotKeyManagerPressed(object sender, EventArgs e) {
-			TimeSpan offset = new TimeSpan(0, 0, 4);
+			TimeSpan offset = new TimeSpan(0, 0, 1);
 			Process[] proc = Process.GetProcessesByName("dota2");
 			// If it's been more than 4 seconds since last press, run
 			if(proc.Length > 0 && proc[0].ToString().Equals("System.Diagnostics.Process (dota2)") && DateTime.Compare(DateTime.Now, lastRun.Add(offset)) >= 0) {
@@ -205,8 +205,8 @@ namespace D2RoshTimer {
 					}
 					int tries = 0;
 					// Listen to gamestate data for 4.5 seconds or until user picks up aegis themselves
-					while(tries < 30 && !aegisLock) {
-						Thread.Sleep(150);
+					while(tries < 20 && !aegisLock && roshCurrentTime <= -200) {
+						Thread.Sleep(100);
 						tries++;
 					}
 					gsl.NewGameState += onNewGameState;
@@ -263,17 +263,18 @@ namespace D2RoshTimer {
 					roshLock = false;
 					aegisLock = false;
 					// Try to set clipboard data, occassionally fails for unknown reasons, try again a few times 
-					for(int i = 0;i < 10;i++) {
+					for(int i = 0;i < 1;i++) {
 						try {
 							Clipboard.SetDataObject(data);
 							return;
 						} catch(COMException ex) {
-							const uint CLIPBRD_E_CANT_OPEN = 0x800401D0;
+							/*const uint CLIPBRD_E_CANT_OPEN = 0x800401D0;
 							if((uint)ex.ErrorCode != CLIPBRD_E_CANT_OPEN) {
-								throw;
-							}
+								ex
+							}*/
 						}
 					}
+					Thread.Sleep(1000);
 				} else if(gamestate != DOTA_GameState.DOTA_GAMERULES_STATE_GAME_IN_PROGRESS && gamestate != DOTA_GameState.DOTA_GAMERULES_STATE_PRE_GAME && Settings.Default.ErrorDisplay) {
 					MessageBox.Show("This only runs when loaded into a game.");
 				} else if(Settings.Default.ErrorDisplay) {

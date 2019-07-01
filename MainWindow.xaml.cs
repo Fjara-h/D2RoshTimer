@@ -16,19 +16,14 @@ using System.Runtime.InteropServices;
 using NHotkey.Wpf;
 using Dota2GSI.Nodes;
 using WindowsInput;
-using WindowsInput.Native;
 
 namespace D2RoshTimer {
-
 	public partial class MainWindow : Window {
 
 		private DateTime lastRun = DateTime.MinValue;
 		private int currentTime = -200;
 		private int roshCurrentTime = -200;
-		private int aegisCurrentTime = -200;
 		private DOTA_GameState gamestate = DOTA_GameState.Undefined;
-		private bool hasAegis = false;
-		private bool aegisLock = false;
 		private bool roshLock = false;
 
 		public MainWindow() {
@@ -111,34 +106,28 @@ namespace D2RoshTimer {
 			uint scanCode = MapVirtualKey((uint)virtKey, mapType.MAPVK_VK_TO_VSC);
 			StringBuilder stringBuilder = new StringBuilder(2);
 			int result = ToUnicode((uint)virtKey, scanCode, keyboardState, stringBuilder, stringBuilder.Capacity, 0);
-			string finalKey = "";
 			switch(result) {
 				case -1:
 				case 0:
-					finalKey = key.ToString();
-					break;
+					return key.ToString();
 				case 1: {
 					if(key == Key.Enter) {
-						finalKey = "Enter";
-						break;
+						return "Enter";
 					}
 					if(key == Key.Tab) {
-						finalKey = "Tab";
-						break;
+						return "Tab";
 					}
-					finalKey = stringBuilder[0].ToString().ToUpper();
 					if(key.ToString().StartsWith("NumPad") || key.ToString().Equals("Multiply") || key.ToString().Equals("Divide") || key.ToString().Equals("Add") || key.ToString().Equals("Subtract")) {
-						finalKey += "(NumPad)";
+						return stringBuilder[0].ToString().ToUpper() + "(NumPad)";
 					}
-					break;
+					else {
+						return stringBuilder[0].ToString().ToUpper();
+					}
 				}
 				default: {
-					finalKey = stringBuilder[0].ToString().ToUpper();
-					break;
+					return stringBuilder[0].ToString().ToUpper();
 				}
 			}
-			stringBuilder = null;
-			return finalKey;
 		}
 
 		// Any time a user manually changes a checkbok for modifier keys, update settings and UI
@@ -162,15 +151,15 @@ namespace D2RoshTimer {
 			RegistryKey regKey = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Steam App 570\");
 			if(regKey != null) {
 				string gsiFolder = regKey.GetValue("InstallLocation") + @"\game\dota\cfg\gamestate_integration";
-				Directory.CreateDirectory(gsiFolder);
-				string gsifile = gsiFolder + @"\gamestate_integration_roshtimer.cfg";
-				if(File.Exists(gsifile)) {
-					return;
+				if(!Directory.Exists(gsiFolder)) {
+					Directory.CreateDirectory(gsiFolder);
 				}
-				string[] contentofgsifile = {
+				string gsifile = gsiFolder + @"\gamestate_integration_D2RandomerSimple.cfg";
+				if(!File.Exists(gsifile)) {
+					string[] contentofgsifile = {
 						"\"Dota 2 Integration Configuration\"",
 						"{",
-						"    \"uri\"           \"http://localhost:42345\"",
+						"    \"uri\"           \"http://localhost:42340\"",
 						"    \"timeout\"       \"5.0\"",
 						"    \"buffer\"        \"0.1\"",
 						"    \"throttle\"      \"0.1\"",
@@ -182,12 +171,13 @@ namespace D2RoshTimer {
 						"        \"player\"        \"0\"",
 						"        \"hero\"          \"0\"",
 						"        \"abilities\"     \"0\"",
-						"        \"items\"         \"1\"",
+						"        \"items\"         \"0\"",
 						"    }",
 						"}",
 
 					};
-				File.WriteAllLines(gsifile, contentofgsifile);
+					File.WriteAllLines(gsifile, contentofgsifile);
+				}
 			} else if(Settings.Default.ErrorDisplay) {
 				MessageBox.Show("Registry key for Dota 2 not found, cannot create Gamestate Integration file.");
 			}
@@ -195,18 +185,16 @@ namespace D2RoshTimer {
 
 		// When registered hotkey is pressed, calculate minutes and seconds from currentTime, construct output and copy to clipboard
 		private void hotKeyManagerPressed(object sender, EventArgs e) {
-			// this enables use of the key IF no modifiers are enabled.
+			// This enables the use of the key IF no modifiers are enabled, without this you are unable to use set hotkey in normal operation.
 			if(!Settings.Default.AltModifier && !Settings.Default.ControlModifier && !Settings.Default.ShiftModifier && !Settings.Default.WindowsModifier) {
 				InputSimulator keySim = new InputSimulator();
 				StringBuilder charPressed = new StringBuilder(256);
 				ToUnicode((uint)KeyInterop.VirtualKeyFromKey(Settings.Default.KeyBind), 0, new byte[256], charPressed, charPressed.Capacity, 0);
 				keySim.Keyboard.TextEntry(charPressed.ToString());
-				keySim = null;
-				charPressed = null;
 			}
 			TimeSpan offset = new TimeSpan(0, 0, 1);
 			Process[] proc = Process.GetProcessesByName("dota2");
-			// If it's been more than 4 seconds since last press, run
+			// If it's been more than 1 seconds since last press, run
 			if(proc.Length > 0 && proc[0].ToString().Equals("System.Diagnostics.Process (dota2)") && DateTime.Compare(DateTime.Now, lastRun.Add(offset)) >= 0) {
 				GameStateListener gsl;
 				using(gsl = new GameStateListener(42345)) {
@@ -215,8 +203,8 @@ namespace D2RoshTimer {
 						MessageBox.Show("GameStateListener could not start. Try running as Administrator.");
 					}
 					int tries = 0;
-					// Listen to gamestate data for 4.5 seconds or until user picks up aegis themselves
-					while(tries < 20 && !aegisLock && roshCurrentTime <= -200) {
+					// Listen to gamestate data for 4.5 seconds
+					while(tries < 20 && roshCurrentTime <= -200) {
 						Thread.Sleep(100);
 						tries++;
 					}
@@ -224,6 +212,7 @@ namespace D2RoshTimer {
 					tries = 0;
 				}
 				// If game time has been updated and gamestate is where it actually matters, run
+
 				if(currentTime > -200 && (gamestate == DOTA_GameState.DOTA_GAMERULES_STATE_GAME_IN_PROGRESS || gamestate == DOTA_GameState.DOTA_GAMERULES_STATE_PRE_GAME)) {
 					string killTime = "", aegisTime = "", earlyTime = "", lateTime = "";
 					int minutes = roshCurrentTime / 60;
@@ -232,18 +221,15 @@ namespace D2RoshTimer {
 					// If rosh was taken after the horn (0:00 clock time), otherwise its before and special math is needed
 					if(roshCurrentTime >= 0) {
 						killTime = "Kill " + minutes + ":" + seconds.ToString("D2", CultureInfo.InvariantCulture) + " |  ";
-						if(hasAegis) {
-							int aegisNewMin = aegisCurrentTime / 60;
-							int aegisNewSec = Math.Abs(aegisCurrentTime) % 60;
-							aegisTime = "Aegis Reclaim " + aegisNewMin + ":" + aegisNewSec.ToString("D2", CultureInfo.InvariantCulture) + " |  ";
-						} else {
-							aegisTime = "Aegis Reclaim " + (minutes + 5) + ":" + seconds.ToString("D2", CultureInfo.InvariantCulture) + " |  ";
-						}
+						aegisTime = "Aegis Reclaim " + (minutes + 5) + ":" + seconds.ToString("D2", CultureInfo.InvariantCulture) + " |  ";
 						minutes += 8;
 						earlyTime = "Early Spawn " + minutes + ":" + seconds.ToString("D2", CultureInfo.InvariantCulture) + " |  ";
 						minutes += 3;
 						lateTime = "Late Spawn " + minutes + ":" + seconds.ToString("D2", CultureInfo.InvariantCulture) + " ";
 					} else {
+						roshCurrentTime -= 1; // Update roshCurrentTime to -1 seconds because gameClockTime is actually off by 1 second from in game timer.
+						minutes = roshCurrentTime / 60;
+						seconds = Math.Abs(roshCurrentTime % 60);
 						int temp = 300 - Math.Abs(roshCurrentTime);
 						int newMinutes = temp / 60;
 						int newSeconds = temp % 60;
@@ -252,38 +238,24 @@ namespace D2RoshTimer {
 						} else {
 							killTime = "Kill -" + minutes + ":" + seconds.ToString("D2", CultureInfo.InvariantCulture) + " |  ";
 						}
-						if(hasAegis){
-							int aegisNewMin = (300 - Math.Abs(aegisCurrentTime)) / 60;
-							int aegisNewSec = (300 - Math.Abs(aegisCurrentTime)) % 60;
-							aegisTime = "Aegis Reclaim " + aegisNewMin + ":" + aegisNewSec.ToString("D2", CultureInfo.InvariantCulture) + " |  ";
-						} else {
-							aegisTime = "Aegis Reclaim " + (newMinutes + 5) + ":" + newSeconds.ToString("D2", CultureInfo.InvariantCulture) + " |  ";
-						}
-						newMinutes += 8;
+						aegisTime = "Aegis Reclaim " + (newMinutes) + ":" + newSeconds.ToString("D2", CultureInfo.InvariantCulture) + " |  ";
+						newMinutes += 3;
 						earlyTime = "Early Spawn " + newMinutes + ":" + newSeconds.ToString("D2", CultureInfo.InvariantCulture) + " |  ";
 						newMinutes += 3;
 						lateTime = "Late Spawn " + newMinutes + ":" + newSeconds.ToString("D2", CultureInfo.InvariantCulture) + " ";
 					}
 					string data = killTime + aegisTime + earlyTime + lateTime;
-					// Reset values to ensure next use has fresh values.
+					// Reset values to ensure next use has fresh values on next run
 					currentTime = -200;
 					roshCurrentTime = -200;
-					aegisCurrentTime = -200;
 					gamestate = DOTA_GameState.Undefined;
-					hasAegis = false;
 					roshLock = false;
-					aegisLock = false;
-					// Try to set clipboard data, occassionally fails for unknown reasons, try again a few times 
+					// Try to set clipboard data, occassionally fails for unknown reasons, try again then
 					for(int i = 0;i < 1;i++) {
 						try {
 							Clipboard.SetDataObject(data);
 							return;
-						} catch(COMException ex) {
-							/*const uint CLIPBRD_E_CANT_OPEN = 0x800401D0;
-							if((uint)ex.ErrorCode != CLIPBRD_E_CANT_OPEN) {
-								ex
-							}*/
-						}
+						} catch(COMException ex) { }
 					}
 					Thread.Sleep(1000);
 				} else if(gamestate != DOTA_GameState.DOTA_GAMERULES_STATE_GAME_IN_PROGRESS && gamestate != DOTA_GameState.DOTA_GAMERULES_STATE_PRE_GAME && Settings.Default.ErrorDisplay) {
@@ -307,13 +279,6 @@ namespace D2RoshTimer {
 				roshLock = true;
 			}
 			gamestate = gs.Map.GameState;
-			hasAegis = gs.Items.InventoryContains("item_aegis");
-			// If user picks up aegis within the time frame then use an updated timer for aegis expiration timer
-			if(hasAegis && !aegisLock) {
-				aegisCurrentTime = currentTime;
-				aegisLock = true;
-			}
-			
 		}
 
 		// Register new hotkey

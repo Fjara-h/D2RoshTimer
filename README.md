@@ -7,9 +7,9 @@ Press a hotkey, get the in-game time as rosh's death, calculate aegis reclaim, e
 
 This uses valve's gamestate integration which sends data when requested. It is used in many other programs and will never result in a VAC ban, there is absolutely no chance of this. The only thing people may think is that it is somehow unfair, but it is using information available to anyone who wants it and is actively upkept by valve for use.
 
-Run the .exe, a window will pop up where you can set your keybind. Press Save whenever you are ready. After loading into a game and you can see the in-game clock (before or after the horn), press the hotkey when Rosh Falls, the current in game time will be recorded and rosh kill time, aegis reclaim time, rosh early spawn, rosh late spawn will be set on your clipboard. Then open chat and paste (ctrl + v). If you are the one who takes aegis and do it within 4.5 seconds of pressing the hotkey there will be a new time for the aegis reclaim to be more accurate. Only 1 instance can run at any point.
+Run the .exe, a window will pop up where you can set your keybind. Press Save whenever you are ready. After loading into a game and you can see the in-game clock (before or after the horn), press the hotkey when Rosh Falls, the current in game time will be recorded and rosh kill time, aegis reclaim time, rosh early spawn, rosh late spawn will be set on your clipboard. Then open chat and paste (ctrl + v). Only 1 instance can run at any point.
 
-The timer is based on the clock in-game when the hotkey is pressed, aegis reclaim is if you already have aegis in your inventory or if you pick it up within 4.5 seconds of pressing the hotkey otherwise it is just +5 minutes to kill time, it is not when rosh is killed because player GSI doesn't have the same information available as a spectator. 
+The timer is based on the clock in-game when the hotkey is pressed, aegis reclaim is just +5 minutes to kill time. There is no way to get client/player side to get rosh's status or aegis's status, only in spectator mode. 
 
 If for some reason the gamestate_integration_roshtimer.cfg  cannot be created in the dota 2 beta folder. [Download this and copy it to where your "dota 2 beta" folder is.](https://github.com/robuhde/D2RoshTimer/raw/master/Downloads/Manual%20cfg%20placement.zip)
 
@@ -17,7 +17,7 @@ If for some reason the gamestate_integration_roshtimer.cfg  cannot be created in
 
 If you want to delete the files this program creates, the program settings are here:
 
-C:\Users\<User Account>\AppData\Local\Fjara\D2RoshTimer - Delete D2Rosh Timer folder
+C:\Users\<User Account>\AppData\Local\Fjara\D2RoshTimer.exe~~~~ - Delete D2Rosh Timer folder
 
 The Gatestate Integration Files are Located within your dota 2 cfg folder:
 

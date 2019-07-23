@@ -17,14 +17,17 @@ using NHotkey.Wpf;
 using Dota2GSI.Nodes;
 using WindowsInput;
 
+// This is a utility for Dota 2. When roshan is killed, the user presses their chosen hotkey and the following will be copied to their clipboard:
+//	Roshan's death time, Aegis reclaim time (assuming it is picked up immediately), Roshan's earliest spawn time, Roshan's latest spawn time
+
 namespace D2RoshTimer {
 	public partial class MainWindow : Window {
 
 		private DateTime lastRun = DateTime.MinValue;
+		private long currentMatchID = 0, lastRunMatchID = -1;
+		private int lastTime = -300;
 		private int currentTime = -200;
-		private int roshCurrentTime = -200;
 		private DOTA_GameState gamestate = DOTA_GameState.Undefined;
-		private bool roshLock = false;
 
 		public MainWindow() {
 			InitializeComponent();
@@ -32,6 +35,7 @@ namespace D2RoshTimer {
 			this.Top = (SystemParameters.PrimaryScreenHeight / 2) - (this.Height / 2);
 			this.Topmost = true;
 			errorSwitch();
+			outputSwitch();
 			quietSetCheckbox();
 			printKeys(Settings.Default.KeyBind);
 			createGsiFile();
@@ -49,7 +53,7 @@ namespace D2RoshTimer {
 			keyTextbox.Text = "";
 		}
 
-		// Take any keypress for main key except for both alt, both control, both shift as they are modifier keys. Set as new keybind and update UI (Do I need to block windows key?)
+		// Take any keypress for main key except for either alt, either control, either shift, and either windows key as they are modifiers. Set in settings and update UI
 		private void keyTextbox_KeyDown(object sender, KeyEventArgs e) {
 			if(e.Key != Key.LeftAlt && e.Key != Key.RightAlt && e.Key != Key.LeftCtrl && e.Key != Key.RightCtrl && e.Key != Key.LeftShift
 												&& e.Key != Key.RightShift && e.Key != Key.RWin && e.Key != Key.LWin && e.Key != Key.System) {
@@ -69,18 +73,18 @@ namespace D2RoshTimer {
 		private void quietSetCheckbox() {
 			IEnumerable<CheckBox> collection = MainCanvas.Children.OfType<CheckBox>();
 			foreach(CheckBox box in collection) {
-				altCheckbox.Checked -= modifierCheckBoxChange;
+				box.Checked -= modifierCheckBoxChange;
 			}
 			altCheckbox.IsChecked = Settings.Default.AltModifier;
 			controlCheckbox.IsChecked = Settings.Default.ControlModifier;
 			shiftCheckbox.IsChecked = Settings.Default.ShiftModifier;
 			windowsCheckbox.IsChecked = Settings.Default.WindowsModifier;
 			foreach(CheckBox box in collection) {
-				altCheckbox.Checked += modifierCheckBoxChange;
+				box.Checked += modifierCheckBoxChange;
 			}
 		}
 
-		// Output current keybind to textbox - Special to Output the key as is on Keyboard, not Key Name as a variable.
+		// Output current keybind to textbox
 		private void printKeys(Key key) {
 			keyTextbox.Text = getRealKey(key);
 			if(Settings.Default.AltModifier) {
@@ -98,7 +102,7 @@ namespace D2RoshTimer {
 			Keyboard.ClearFocus();
 		}
 
-		// Convert Key object identifiers to human understandable/common use terms
+		// Convert Key object to human comprehensible names
 		private string getRealKey(Key key) {
 			int virtKey = KeyInterop.VirtualKeyFromKey(key);
 			byte[] keyboardState = new byte[256];
@@ -130,7 +134,7 @@ namespace D2RoshTimer {
 			}
 		}
 
-		// Any time a user manually changes a checkbok for modifier keys, update settings and UI
+		// Any time a user manually changes a checkbox for modifier keys, update UI and settings
 		private void modifierCheckBoxChange(object sender, RoutedEventArgs e) {
 			CheckBox box = (CheckBox)sender;
 			bool flag = box.IsChecked.Value;
@@ -146,7 +150,7 @@ namespace D2RoshTimer {
 			printKeys(Settings.Default.KeyBind);
 		}
 
-		// Used for Dota2GSI - Create config file in dota cfg folder to access json data from local dota client.
+		// Used for Dota2GSI - Create config file in ..\dota\cfg folder to access json data from local dota client
 		private void createGsiFile() {
 			RegistryKey regKey = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Steam App 570\");
 			if(regKey != null) {
@@ -192,72 +196,93 @@ namespace D2RoshTimer {
 				ToUnicode((uint)KeyInterop.VirtualKeyFromKey(Settings.Default.KeyBind), 0, new byte[256], charPressed, charPressed.Capacity, 0);
 				keySim.Keyboard.TextEntry(charPressed.ToString());
 			}
-			TimeSpan offset = new TimeSpan(0, 0, 1);
+			TimeSpan offset = new TimeSpan(0, 0, 3);
 			Process[] proc = Process.GetProcessesByName("dota2");
-			// If it's been more than 1 seconds since last press, run
 			if(proc.Length > 0 && proc[0].ToString().Equals("System.Diagnostics.Process (dota2)") && DateTime.Compare(DateTime.Now, lastRun.Add(offset)) >= 0) {
-				GameStateListener gsl;
-				using(gsl = new GameStateListener(42345)) {
+				using(GameStateListener gsl = new GameStateListener(42345)) {
 					gsl.NewGameState += onNewGameState;
-					if(!gsl.Start() && !gsl.Running && Settings.Default.ErrorDisplay) {
+					if(!gsl.Start() && Settings.Default.ErrorDisplay) {
 						MessageBox.Show("GameStateListener could not start. Try running as Administrator.");
 					}
 					int tries = 0;
-					// Listen to gamestate data for 4.5 seconds
-					while(tries < 20 && roshCurrentTime <= -200) {
+					// Listen to gamestate data for at most 2 seconds
+					while(tries < 20 && currentTime <= -200) {
 						Thread.Sleep(100);
 						tries++;
 					}
-					gsl.NewGameState += onNewGameState;
-					tries = 0;
+					gsl.NewGameState -= onNewGameState;
 				}
-				// If game time has been updated and gamestate is where it actually matters, run
-
-				if(currentTime > -200 && (gamestate == DOTA_GameState.DOTA_GAMERULES_STATE_GAME_IN_PROGRESS || gamestate == DOTA_GameState.DOTA_GAMERULES_STATE_PRE_GAME)) {
+				// If game time has been updated and gamestate is when it is possible to kill rosh
+				if(!(currentMatchID == lastRunMatchID)) {
+					lastTime = -300;
+				}
+				if(currentTime > -200 && (gamestate == DOTA_GameState.DOTA_GAMERULES_STATE_GAME_IN_PROGRESS || gamestate == DOTA_GameState.DOTA_GAMERULES_STATE_PRE_GAME) && lastTime + 3 < currentTime) {
+					lastRunMatchID = currentMatchID;
 					string killTime = "", aegisTime = "", earlyTime = "", lateTime = "";
-					int minutes = roshCurrentTime / 60;
-					int seconds = Math.Abs(roshCurrentTime % 60);
-					lastRun = DateTime.Now;
+					int minutes = currentTime / 60;
+					int seconds = Math.Abs(currentTime % 60);
 					// If rosh was taken after the horn (0:00 clock time), otherwise its before and special math is needed
-					if(roshCurrentTime >= 0) {
-						killTime = "Kill " + minutes + ":" + seconds.ToString("D2", CultureInfo.InvariantCulture) + " |  ";
-						aegisTime = "Aegis Reclaim " + (minutes + 5) + ":" + seconds.ToString("D2", CultureInfo.InvariantCulture) + " |  ";
-						minutes += 8;
-						earlyTime = "Early Spawn " + minutes + ":" + seconds.ToString("D2", CultureInfo.InvariantCulture) + " |  ";
-						minutes += 3;
-						lateTime = "Late Spawn " + minutes + ":" + seconds.ToString("D2", CultureInfo.InvariantCulture) + " ";
+					if(currentTime >= 0) {
+						if(!Settings.Default.LongOutputDisplay) {
+							killTime = minutes + ":" + seconds.ToString("D2", CultureInfo.InvariantCulture) + " ";
+							aegisTime = (minutes + 5) + ":" + seconds.ToString("D2", CultureInfo.InvariantCulture) + " ";
+							minutes += 8;
+							earlyTime = minutes + ":" + seconds.ToString("D2", CultureInfo.InvariantCulture) + " ";
+							minutes += 3;
+							lateTime = minutes + ":" + seconds.ToString("D2", CultureInfo.InvariantCulture) + " ";
+						} else {
+							killTime = "Kill " + minutes + ":" + seconds.ToString("D2", CultureInfo.InvariantCulture) + " |  ";
+							aegisTime = "Aegis Reclaim " + (minutes + 5) + ":" + seconds.ToString("D2", CultureInfo.InvariantCulture) + " |  ";
+							minutes += 8;
+							earlyTime = "Early Spawn " + minutes + ":" + seconds.ToString("D2", CultureInfo.InvariantCulture) + " |  ";
+							minutes += 3;
+							lateTime = "Late Spawn " + minutes + ":" + seconds.ToString("D2", CultureInfo.InvariantCulture) + " ";
+						}
 					} else {
-						roshCurrentTime -= 1; // Update roshCurrentTime to -1 seconds because gameClockTime is actually off by 1 second from in game timer.
-						minutes = roshCurrentTime / 60;
-						seconds = Math.Abs(roshCurrentTime % 60);
-						int temp = 300 - Math.Abs(roshCurrentTime);
+						currentTime -= 1; // Update roshCurrentTime to -1 seconds because gameClockTime is actually off by 1 second from in game timer.
+						minutes = currentTime / 60;
+						seconds = Math.Abs(currentTime % 60);
+						int temp = 300 - Math.Abs(currentTime);
 						int newMinutes = temp / 60;
 						int newSeconds = temp % 60;
-						if(minutes != 0) {
-							killTime = "Kill " + minutes + ":" + seconds.ToString("D2", CultureInfo.InvariantCulture) + " |  ";
+						if(!Settings.Default.LongOutputDisplay) {
+							if(minutes != 0) {
+								killTime = "| " + minutes + ":" + seconds.ToString("D2", CultureInfo.InvariantCulture) + " ";
+							} else {
+								killTime = "| -" + minutes + ":" + seconds.ToString("D2", CultureInfo.InvariantCulture) + " ";
+							}
+							aegisTime = newMinutes + ":" + newSeconds.ToString("D2", CultureInfo.InvariantCulture) + " ";
+							newMinutes += 3;
+							earlyTime = newMinutes + ":" + newSeconds.ToString("D2", CultureInfo.InvariantCulture) + " ";
+							newMinutes += 3;
+							lateTime = newMinutes + ":" + newSeconds.ToString("D2", CultureInfo.InvariantCulture) + " ";
 						} else {
-							killTime = "Kill -" + minutes + ":" + seconds.ToString("D2", CultureInfo.InvariantCulture) + " |  ";
+							if(minutes != 0) {
+								killTime = "Kill " + minutes + ":" + seconds.ToString("D2", CultureInfo.InvariantCulture) + " |  ";
+							} else {
+								killTime = "Kill -" + minutes + ":" + seconds.ToString("D2", CultureInfo.InvariantCulture) + " |  ";
+							}
+							aegisTime = "Aegis Reclaim " + newMinutes + ":" + newSeconds.ToString("D2", CultureInfo.InvariantCulture) + " |  ";
+							newMinutes += 3;
+							earlyTime = "Early Spawn " + newMinutes + ":" + newSeconds.ToString("D2", CultureInfo.InvariantCulture) + " |  ";
+							newMinutes += 3;
+							lateTime = "Late Spawn " + newMinutes + ":" + newSeconds.ToString("D2", CultureInfo.InvariantCulture) + " ";
 						}
-						aegisTime = "Aegis Reclaim " + (newMinutes) + ":" + newSeconds.ToString("D2", CultureInfo.InvariantCulture) + " |  ";
-						newMinutes += 3;
-						earlyTime = "Early Spawn " + newMinutes + ":" + newSeconds.ToString("D2", CultureInfo.InvariantCulture) + " |  ";
-						newMinutes += 3;
-						lateTime = "Late Spawn " + newMinutes + ":" + newSeconds.ToString("D2", CultureInfo.InvariantCulture) + " ";
 					}
 					string data = killTime + aegisTime + earlyTime + lateTime;
-					// Reset values to ensure next use has fresh values on next run
+					// Reset values to ensure next use has fresh values on this run
 					currentTime = -200;
-					roshCurrentTime = -200;
 					gamestate = DOTA_GameState.Undefined;
-					roshLock = false;
 					// Try to set clipboard data, occassionally fails for unknown reasons, try again then
-					for(int i = 0;i < 1;i++) {
+					for(int i = 0;i <= 1;i++) {
 						try {
 							Clipboard.SetDataObject(data);
-							return;
+							i = 5;
 						} catch(COMException ex) { }
 					}
-					Thread.Sleep(1000);
+					lastRun = DateTime.Now;
+				} else if (lastTime == currentTime && Settings.Default.ErrorDisplay) {
+					MessageBox.Show("You are running when the in-game clock is the same.");
 				} else if(gamestate != DOTA_GameState.DOTA_GAMERULES_STATE_GAME_IN_PROGRESS && gamestate != DOTA_GameState.DOTA_GAMERULES_STATE_PRE_GAME && Settings.Default.ErrorDisplay) {
 					MessageBox.Show("This only runs when loaded into a game.");
 				} else if(Settings.Default.ErrorDisplay) {
@@ -270,15 +295,11 @@ namespace D2RoshTimer {
 			}
 		}
 
-		// As the game updates, repeatedly get in-game time as seconds.
+		// As the game data updates, repeatedly set to new time and gamestate.
 		private void onNewGameState(GameState gs) {
 			currentTime = gs.Map.ClockTime;
-			// Lock on first instance of game time, so excess runs do not update it causing timer to be off
-			if(!roshLock) {
-				roshCurrentTime = currentTime;
-				roshLock = true;
-			}
 			gamestate = gs.Map.GameState;
+			currentMatchID = gs.Map.MatchID;
 		}
 
 		// Register new hotkey
@@ -298,27 +319,50 @@ namespace D2RoshTimer {
 			}
 			HotkeyManager.Current.AddOrReplace("runTimer", Settings.Default.KeyBind, mk, hotKeyManagerPressed);
 		}
+		
+		// Output switch button click to change values
+		private void outputSwitch_Click(object sender, RoutedEventArgs e) {
+			outputSwitch();
+		}
 
-		// Error button click to change values
-		private void error_Click(object sender, RoutedEventArgs e) {
+		// Switch between long form (Kill 3:34 | Aegis 8:34 | Early 11:34 | Late 14:34) and short form (3:34 8:34 11:34 14:34)
+		private void outputSwitch() {
+			string setShort = "Set to short form (3:45 8:45 11:45 14:45)", setLong = "Set to long form (Kill 3:34 | Aegis 8:34 ...)";
+			if(outputSwitchButton.Content.Equals(setShort)) {
+				Settings.Default.LongOutputDisplay = false;
+				outputSwitchButton.Content = setLong;
+			} else if(outputSwitchButton.Content.Equals(setLong)) {
+				Settings.Default.LongOutputDisplay = true;
+				outputSwitchButton.Content = setShort;
+			} else if(Settings.Default.LongOutputDisplay) {
+				Settings.Default.LongOutputDisplay = true;
+				outputSwitchButton.Content = setShort;
+			} else {
+				Settings.Default.LongOutputDisplay = false;
+				outputSwitchButton.Content = setLong;
+			}
+		}
+
+		// Error switch button click to change values
+		private void errorSwitch_Click(object sender, RoutedEventArgs e) {
 			errorSwitch();
 		}
 
 		// Enable/Disable Error Popups
 		private void errorSwitch() {
 			string disable = "Disable Error Popups", enable = "Enable Error Popups";
-			if(errorButton.Content.Equals(disable)) {
+			if(errorSwitchButton.Content.Equals(disable)) {
 				Settings.Default.ErrorDisplay = false;
-				errorButton.Content = enable;
-			} else if(errorButton.Content.Equals(enable)) {
+				errorSwitchButton.Content = enable;
+			} else if(errorSwitchButton.Content.Equals(enable)) {
 				Settings.Default.ErrorDisplay = true;
-				errorButton.Content = disable;
+				errorSwitchButton.Content = disable;
 			} else if(Settings.Default.ErrorDisplay) {
 				Settings.Default.ErrorDisplay = true;
-				errorButton.Content = disable;
+				errorSwitchButton.Content = disable;
 			} else {
 				Settings.Default.ErrorDisplay = false;
-				errorButton.Content = enable;
+				errorSwitchButton.Content = enable;
 			}
 		}
 
@@ -328,13 +372,17 @@ namespace D2RoshTimer {
 			Settings.Default.ShiftModifier = false;
 			Settings.Default.WindowsModifier = false;
 			Settings.Default.AltModifier = true;
+			Settings.Default.ErrorDisplay = true;
+			errorSwitchButton.Content = "Disable Error Popups";
+			Settings.Default.LongOutputDisplay = true;
+			outputSwitchButton.Content = "Set to short form (3:45 8:45 11:45 14:45)";
 			Settings.Default.KeyBind = Key.O;
 			quietSetCheckbox();
 			printKeys(Settings.Default.KeyBind);
 		}
 
 		// Save settings and close window
-		private void ok_Click(object sender, RoutedEventArgs e) {
+		private void done_Click(object sender, RoutedEventArgs e) {
 			if(keyTextbox.Text.Equals("")) {
 				Settings.Default.KeyBind = Key.O;
 				printKeys(Settings.Default.KeyBind);
@@ -342,6 +390,11 @@ namespace D2RoshTimer {
 			formHotkey();
 			Settings.Default.Save();
 			Application.Current.MainWindow.Hide();
+		}
+
+		// Shutdown Application
+		private void close_Click(object sender, RoutedEventArgs e) {
+			Application.Current.Shutdown();
 		}
 
 		// Utility for displaying characters correct from keyboard

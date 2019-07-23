@@ -5,18 +5,20 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:D2RoshTimer"
         mc:Ignorable="d"
-        Title="MainWindow" AllowsTransparency="True" WindowStyle="None" ResizeMode="NoResize" Icon="Resources/D2RoshTimer.ico" Background="White" BorderBrush="SlateGray" BorderThickness="1" d:DesignHeight="130" d:DesignWidth="300" Height="130" Width="300">
-	<Canvas x:Name="MainCanvas" Height="129" Width="299">
-		<Label Style="{DynamicResource LabelStyle}" Name="titleLabel" Content="Click Below to Change Binding" Height="18" Width="218" Canvas.Top="2" Canvas.Left="3"/>
-		<Viewbox StretchDirection="DownOnly" Stretch="Uniform" Height="75" Width="225" Canvas.Top="20" Canvas.Left="3">
+        Title="MainWindow" AllowsTransparency="True" WindowStyle="None" ResizeMode="NoResize" Icon="Resources/D2RoshTimer.ico" Background="White" BorderBrush="SlateGray" BorderThickness="1" d:DesignHeight="159" d:DesignWidth="295" Height="159" Width="297" ShowInTaskbar="False">
+	<Canvas x:Name="MainCanvas" Height="159" Width="296">
+		<Label Style="{DynamicResource LabelStyle}" Name="titleLabel" Content="Click Below to Change Binding" Height="18" Width="218" Canvas.Top="1" Canvas.Left="1"/>
+		<Button Style="{DynamicResource ButtonStyle}" Name="closeButton" Click="close_Click" Padding="0,-2,0,0" Content="X" Height="15" Width="15" Canvas.Top="1" Canvas.Right="2"/>
+		<Viewbox StretchDirection="DownOnly" Stretch="Uniform" Height="75" Width="225" Canvas.Top="19" Canvas.Left="1">
 			<TextBox Style="{DynamicResource TextBoxStyle}" Name="keyTextbox" KeyDown="keyTextbox_KeyDown" CommandManager.PreviewExecuted="keyTextBox_PreviewExecuted" Height="75" Width="225" />
 		</Viewbox>
-		<CheckBox Style="{DynamicResource CheckBoxStyle}" Name="altCheckbox" Unchecked="modifierCheckBoxChange" Checked="modifierCheckBoxChange" Content="Alt" Canvas.Top="20" Canvas.Right="2"/>
-		<CheckBox Style="{DynamicResource CheckBoxStyle}" Name="controlCheckbox" Unchecked="modifierCheckBoxChange" Checked="modifierCheckBoxChange" Content="Control" Canvas.Top="36" Canvas.Right="2"/>
-		<CheckBox Style="{DynamicResource CheckBoxStyle}" Name="shiftCheckbox" Unchecked="modifierCheckBoxChange" Checked="modifierCheckBoxChange" Content="Shift" Canvas.Top="52" Canvas.Right="2"/>
-		<CheckBox Style="{DynamicResource CheckBoxStyle}" Name="windowsCheckbox" Unchecked="modifierCheckBoxChange" Checked="modifierCheckBoxChange" Content="Windows" Canvas.Top="68" Canvas.Right="2"/>
-		<Button Style="{DynamicResource ButtonStyle}" Name="defaultButton" Click="default_Click" Content="Reset to Default" Height="30" Width="90" Canvas.Bottom="3" Canvas.Left="3"/>
-		<Button Style="{DynamicResource ButtonStyle}" Name="errorButton" Click="error_Click" Content="" Height="30" Width="120" Canvas.Bottom="3" Canvas.Left="108"/>
-		<Button Style="{DynamicResource ButtonStyle}" Name="okButton" Click="ok_Click" Content="Save" Height="30" Width="50" Canvas.Bottom="3" Canvas.Right="3"/>
+		<CheckBox Style="{DynamicResource CheckBoxStyle}" Name="altCheckbox" Unchecked="modifierCheckBoxChange" Checked="modifierCheckBoxChange" Content="Alt" Canvas.Top="25" Canvas.Right="1"/>
+		<CheckBox Style="{DynamicResource CheckBoxStyle}" Name="controlCheckbox" Unchecked="modifierCheckBoxChange" Checked="modifierCheckBoxChange" Content="Control" Canvas.Top="41" Canvas.Right="1"/>
+		<CheckBox Style="{DynamicResource CheckBoxStyle}" Name="shiftCheckbox" Unchecked="modifierCheckBoxChange" Checked="modifierCheckBoxChange" Content="Shift" Canvas.Top="57" Canvas.Right="1"/>
+		<CheckBox Style="{DynamicResource CheckBoxStyle}" Name="windowsCheckbox" Unchecked="modifierCheckBoxChange" Checked="modifierCheckBoxChange" Content="Windows" Canvas.Top="73" Canvas.Right="1"/>
+		<Button Style="{DynamicResource ButtonStyle}" Name="outputSwitchButton" Click="outputSwitch_Click" Content="" Height="30" Width="225" Canvas.Bottom="34" Canvas.Left="1"/>
+		<Button Style="{DynamicResource ButtonStyle}" Name="errorSwitchButton" Click="errorSwitch_Click" Content="" Height="30" Width="120" Canvas.Bottom="3" Canvas.Left="106"/>
+		<Button Style="{DynamicResource ButtonStyle}" Name="defaultButton" Click="default_Click" Content="Reset to Default" Height="30" Width="90" Canvas.Bottom="3" Canvas.Left="1"/>
+		<Button Style="{DynamicResource ButtonStyle}" Name="doneButton" Click="done_Click" Content="Done" Height="30" Width="50" Canvas.Bottom="3" Canvas.Right="2"/>
 	</Canvas>
 </Window>

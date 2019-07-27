@@ -1,20 +1,20 @@
 ﻿using D2RoshTimer.Properties;
+using Dota2GSI.Nodes;
 using Dota2GSI;
 using Microsoft.Win32;
-using System;
-using System.Diagnostics;
-using System.IO;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Input;
+using NHotkey.Wpf;
 using System.Collections.Generic;
-using System.Linq;
+using System.Diagnostics;
 using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
-using System.Runtime.InteropServices;
-using NHotkey.Wpf;
-using Dota2GSI.Nodes;
+using System.Windows.Controls;
+using System.Windows.Input;
+using System.Windows;
+using System;
 using WindowsInput;
 
 // This is a utility for Dota 2. When roshan is killed, the user presses their chosen hotkey and the following will be copied to their clipboard:
@@ -273,7 +273,7 @@ namespace D2RoshTimer {
 					// Reset values to ensure next use has fresh values on this run
 					currentTime = -200;
 					gamestate = DOTA_GameState.Undefined;
-					// Try to set clipboard data, occassionally fails for unknown reasons, try again then
+					// Try to set clipboard data, occassionally fails if it is used by something else
 					for(int i = 0;i <= 1;i++) {
 						try {
 							Clipboard.SetDataObject(data);

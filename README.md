@@ -9,6 +9,8 @@ This uses valve's gamestate integration which sends data when requested. It is u
 
 Run the .exe, a window will pop up where you can set your keybind. Press Save whenever you are ready. After loading into a game and you can see the in-game clock (before or after the horn), press the hotkey when Rosh dies, the current in game time will be recorded and rosh kill time, aegis reclaim time, rosh early spawn, rosh late spawn will be set on your clipboard. Then open chat and paste (ctrl + v). Only 1 instance can run at any time.
 
+After opening this program for the first time you will need to start or restart dota afterwards so that dota can load the config file that allows it to send data.
+
 The timer is based on the clock in-game when the hotkey is pressed, aegis reclaim is just +5 minutes to kill time. There is no way to get client/player side to get rosh's status or aegis's status, only in spectator mode. 
 
 If for some reason the gamestate_integration_roshtimer.cfg  cannot be created in the dota 2 beta folder. [Download this and copy it to where your "dota 2 beta" folder is.](https://github.com/robuhde/D2RoshTimer/raw/master/Downloads/Manual%20cfg%20placement.zip)

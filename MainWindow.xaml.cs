@@ -158,7 +158,7 @@ namespace D2RoshTimer {
 				if(!Directory.Exists(gsiFolder)) {
 					Directory.CreateDirectory(gsiFolder);
 				}
-				string gsifile = gsiFolder + @"\gamestate_integration_D2RandomerSimple.cfg";
+				string gsifile = gsiFolder + @"\gamestate_integration_D2RoshTimer.cfg";
 				if(!File.Exists(gsifile)) {
 					string[] contentofgsifile = {
 						"\"Dota 2 Integration Configuration\"",
@@ -199,7 +199,7 @@ namespace D2RoshTimer {
 			TimeSpan offset = new TimeSpan(0, 0, 3);
 			Process[] proc = Process.GetProcessesByName("dota2");
 			if(proc.Length > 0 && proc[0].ToString().Equals("System.Diagnostics.Process (dota2)") && DateTime.Compare(DateTime.Now, lastRun.Add(offset)) >= 0) {
-				using(GameStateListener gsl = new GameStateListener(42345)) {
+				using(GameStateListener gsl = new GameStateListener(42340)) {
 					gsl.NewGameState += onNewGameState;
 					if(!gsl.Start() && Settings.Default.ErrorDisplay) {
 						MessageBox.Show("GameStateListener could not start. Try running as Administrator.");

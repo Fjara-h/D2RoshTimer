@@ -17,13 +17,11 @@ If for some reason the gamestate_integration_roshtimer.cfg  cannot be created in
 
 ## Files Created
 
-If you want to delete the files this program creates, the program settings are here:
+If you are having issues, deleting the below files/folders may help:
 
-C:\Users\<User Account>\AppData\Local\Fjara\D2RoshTimer.exe~~~~ - Delete D2Rosh Timer folder
+Settings file located in: "C:\Users\USER\AppData\Local\Fjara\D2RoshTimer.exe<#######>"
 
-The Gatestate Integration Files are Located within your dota 2 cfg folder:
-
-~\dota 2 beta\game\dota\cfg\gamestate_integration
+GSI.cfg located: ~\dota 2 beta\game\dota\cfg\gamestate_integration\gamestate_integration_D2RoshTimer.cfg
 
 
 ### Current MesssageBox Error Pop-Ups:
@@ -42,20 +40,21 @@ The Gatestate Integration Files are Located within your dota 2 cfg folder:
 
 - You are running again to soon - There is an in-built pause that stops it from running for 3 seconds between runs. If this is removed, there are a lot of issues that show up that are not possible to fix since it needs this time to reinitialize the Game State Listener after disposing it.
 
-- ou are running when the in-game clock is the same. - There is an issue where if the in-game time is the same the previous run (this usually occurs during a pause), then it will not update and won't be able to retrieve the game data.
+- You are running when the in-game clock is the same. - There is an issue where if the in-game time is the same the previous run (this usually occurs during a pause), then it will not update and won't be able to retrieve the game data.
 
 ### Issues
 
-D2RoshTimer should only close when you right click on it in the notification taskbar and select "Exit". If it does close prior to that, then there is some issue and I would recommend turning on error messages if not already. Also, If you run into an issue where this occurs, please let me know by posting an issue here or message me on twitter @fjara_ or on reddit /u/Fjarah
+D2RoshTimer should only close when you right click on it in the notification taskbar and select "Exit". If it does close prior to that, then there an some issue and I would recommend turning on error messages if not already. Also, If you run into an issue where this occurs, please let me know by posting an issue here or message me on twitter: @fjara_ or on reddit: /u/Fjarah
 
-Please try to be thorough in explaining what happened, how, if you are able to reproduce it and your system specs. There is a possibility slower systems may have an issue with handling threads slowly. 
+Please try to be thorough in explaining what happened, how, if you are able to reproduce it and your system specs. There is a possibility slower systems may have an issue with handling threads quickly.
 
 ## Requirements:
-64-Bit Windows (Tested on Win10 and Win7)
 
-.Net Framework 4.5.2 or higher
+.NET 4.5 (Installed by default on Vista or newer)
 
-Dota 2 & Steam Installed
+Steam & Dota 2
+
+Windows 7, 8, 10 | 64-bit required
 
 ## Unusable Keys for main key:
 ### Reserved:

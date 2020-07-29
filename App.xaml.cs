@@ -25,7 +25,7 @@ namespace D2RoshTimer {
 				shouldRelease = true;
 			}
 			if(shouldClose) {
-				if(Settings.Default.ErrorDisplay) {
+				if(Settings.Default.ErrorOutput) {
 					MessageBox.Show("Another instance already running.");
 				}
 				App.Current.Shutdown();

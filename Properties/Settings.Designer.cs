@@ -12,7 +12,7 @@ namespace D2RoshTimer.Properties {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "16.1.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "16.6.0.0")]
     internal sealed partial class Settings : global::System.Configuration.ApplicationSettingsBase {
         
         private static Settings defaultInstance = ((Settings)(global::System.Configuration.ApplicationSettingsBase.Synchronized(new Settings())));
@@ -20,6 +20,18 @@ namespace D2RoshTimer.Properties {
         public static Settings Default {
             get {
                 return defaultInstance;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("<?xml version=\"1.0\" encoding=\"utf-16\"?>\r\n<Key>O</Key>")]
+        public global::System.Windows.Input.Key KeyBind {
+            get {
+                return ((global::System.Windows.Input.Key)(this["KeyBind"]));
+            }
+            set {
+                this["KeyBind"] = value;
             }
         }
         
@@ -73,37 +85,145 @@ namespace D2RoshTimer.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("<?xml version=\"1.0\" encoding=\"utf-16\"?>\r\n<Key>O</Key>")]
-        public global::System.Windows.Input.Key KeyBind {
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool OverlayDisplay {
             get {
-                return ((global::System.Windows.Input.Key)(this["KeyBind"]));
+                return ((bool)(this["OverlayDisplay"]));
             }
             set {
-                this["KeyBind"] = value;
+                this["OverlayDisplay"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool VerticalOverlayDisplay {
+            get {
+                return ((bool)(this["VerticalOverlayDisplay"]));
+            }
+            set {
+                this["VerticalOverlayDisplay"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("100")]
+        public int OverlayXPosition {
+            get {
+                return ((int)(this["OverlayXPosition"]));
+            }
+            set {
+                this["OverlayXPosition"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("100")]
+        public int OverlayYPosition {
+            get {
+                return ((int)(this["OverlayYPosition"]));
+            }
+            set {
+                this["OverlayYPosition"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("12")]
+        public double OverlaySize {
+            get {
+                return ((double)(this["OverlaySize"]));
+            }
+            set {
+                this["OverlaySize"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool OverlayButtonDisplay {
+            get {
+                return ((bool)(this["OverlayButtonDisplay"]));
+            }
+            set {
+                this["OverlayButtonDisplay"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("True")]
-        public bool ErrorDisplay {
+        public bool KillDisplay {
             get {
-                return ((bool)(this["ErrorDisplay"]));
+                return ((bool)(this["KillDisplay"]));
             }
             set {
-                this["ErrorDisplay"] = value;
+                this["KillDisplay"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("True")]
-        public bool LongOutputDisplay {
+        public bool AegisDisplay {
             get {
-                return ((bool)(this["LongOutputDisplay"]));
+                return ((bool)(this["AegisDisplay"]));
             }
             set {
-                this["LongOutputDisplay"] = value;
+                this["AegisDisplay"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool EarlyDisplay {
+            get {
+                return ((bool)(this["EarlyDisplay"]));
+            }
+            set {
+                this["EarlyDisplay"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool LateDisplay {
+            get {
+                return ((bool)(this["LateDisplay"]));
+            }
+            set {
+                this["LateDisplay"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool LongOutput {
+            get {
+                return ((bool)(this["LongOutput"]));
+            }
+            set {
+                this["LongOutput"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool ErrorOutput {
+            get {
+                return ((bool)(this["ErrorOutput"]));
+            }
+            set {
+                this["ErrorOutput"] = value;
             }
         }
     }

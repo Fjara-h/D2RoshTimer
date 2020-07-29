@@ -16,11 +16,16 @@ using System.Windows.Input;
 using System.Windows;
 using System;
 using WindowsInput;
+using System.Net.NetworkInformation;
 
 // This is a utility for Dota 2. When roshan is killed, the user presses their chosen hotkey and the following will be copied to their clipboard:
 //	Roshan's death time, Aegis reclaim time (assuming it is picked up immediately), Roshan's earliest spawn time, Roshan's latest spawn time
 
 namespace D2RoshTimer {
+	public static class Globals {
+		public const string procName = "dota2";
+		public const string dotaUninstallKey = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Steam App 570\";
+	}
 	public partial class MainWindow : Window {
 
 		private DateTime lastRun = DateTime.MinValue;
@@ -34,43 +39,18 @@ namespace D2RoshTimer {
 			this.Left = (SystemParameters.PrimaryScreenWidth / 2) - (this.Width / 2);
 			this.Top = (SystemParameters.PrimaryScreenHeight / 2) - (this.Height / 2);
 			this.Topmost = true;
-			errorSwitch();
-			outputSwitch();
-			quietSetCheckbox();
-			printKeys(Settings.Default.KeyBind);
+			initializeSettings();			
 			createGsiFile();
 			EventManager.RegisterClassHandler(typeof(TextBox), TextBox.PreviewMouseLeftButtonDownEvent, new MouseButtonEventHandler(onGotMouseCapture));
+			createOverlay("","","","");
 		}
 
-		// Pressing on non-selectable UI causes drag if held and moved
-		protected override void OnMouseLeftButtonDown(MouseButtonEventArgs e) {
-			base.OnMouseLeftButtonDown(e);
-			this.DragMove();
-		}
-
-		// When selecting the textbox to enter new key, clear it
-		private void onGotMouseCapture(object sender, MouseEventArgs e) {
-			keyTextbox.Text = "";
-		}
-
-		// Take any keypress for main key except for either alt, either control, either shift, and either windows key as they are modifiers. Set in settings and update UI
-		private void keyTextbox_KeyDown(object sender, KeyEventArgs e) {
-			if(e.Key != Key.LeftAlt && e.Key != Key.RightAlt && e.Key != Key.LeftCtrl && e.Key != Key.RightCtrl && e.Key != Key.LeftShift
-												&& e.Key != Key.RightShift && e.Key != Key.RWin && e.Key != Key.LWin && e.Key != Key.System) {
-				Settings.Default.KeyBind = e.Key;
-				printKeys(Settings.Default.KeyBind);
-			}
-		}
-
-		// Catch and skip copy/cut/paste commands
-		private void keyTextBox_PreviewExecuted(object sender, ExecutedRoutedEventArgs e) {
-			if(e.Command == ApplicationCommands.Copy || e.Command == ApplicationCommands.Cut || e.Command == ApplicationCommands.Paste) {
-				e.Handled = true;
-			}
-		}
-
-		// Set the Checkboxes without triggering modifierCheckBoxChange
-		private void quietSetCheckbox() {
+		// Apply saved/default settings to the current menu controls
+		private void initializeSettings() {
+			printKeys();
+			setSizeTextbox.Text = Settings.Default.OverlaySize.ToString();
+			setXTextbox.Text = Settings.Default.OverlayXPosition.ToString();
+			setYTextbox.Text = Settings.Default.OverlayYPosition.ToString();
 			IEnumerable<CheckBox> collection = MainCanvas.Children.OfType<CheckBox>();
 			foreach(CheckBox box in collection) {
 				box.Checked -= modifierCheckBoxChange;
@@ -79,14 +59,83 @@ namespace D2RoshTimer {
 			controlCheckbox.IsChecked = Settings.Default.ControlModifier;
 			shiftCheckbox.IsChecked = Settings.Default.ShiftModifier;
 			windowsCheckbox.IsChecked = Settings.Default.WindowsModifier;
+			overlayEnableCheckbox.IsChecked = Settings.Default.OverlayDisplay;
+			overlayOrientationCheckbox.IsChecked = Settings.Default.VerticalOverlayDisplay;
+			overlayButtonsCheckbox.IsChecked = Settings.Default.OverlayButtonDisplay;
+			killCheckbox.IsChecked = Settings.Default.KillDisplay;
+			aegisCheckbox.IsChecked = Settings.Default.AegisDisplay;
+			earlyCheckbox.IsChecked = Settings.Default.EarlyDisplay;
+			lateCheckbox.IsChecked = Settings.Default.LateDisplay;
+			longOutputCheckbox.IsChecked = Settings.Default.LongOutput;
+			errorOutputCheckbox.IsChecked = Settings.Default.ErrorOutput;
 			foreach(CheckBox box in collection) {
 				box.Checked += modifierCheckBoxChange;
 			}
 		}
 
+		// Used for Dota2GSI - Create config file in ..\dota\cfg folder to access json data from local dota client
+		private void createGsiFile() {
+			RegistryKey regKey = Registry.LocalMachine.OpenSubKey(Globals.dotaUninstallKey);
+			if(regKey != null) {
+				string gsiFolder = regKey.GetValue("InstallLocation") + @"\game\dota\cfg\gamestate_integration";
+				if(!Directory.Exists(gsiFolder)) {
+					Directory.CreateDirectory(gsiFolder);
+				}
+				string gsifile = gsiFolder + @"\gamestate_integration_D2RoshTimer.cfg";
+				if(!File.Exists(gsifile)) {
+					string[] contentofgsifile = {
+						"\"Dota 2 Integration Configuration\"",
+						"{",
+						"    \"uri\"           \"http://localhost:42340\"",
+						"    \"timeout\"       \"5.0\"",
+						"    \"buffer\"        \"0.1\"",
+						"    \"throttle\"      \"0.1\"",
+						"    \"heartbeat\"     \"30.0\"",
+						"    \"data\"",
+						"    {",
+						"        \"map\"           \"1\"",
+						"    }",
+						"}",
+
+					};
+					File.WriteAllLines(gsifile, contentofgsifile);
+				}
+			} else if(Settings.Default.ErrorOutput) {
+				MessageBox.Show("Registry key for Dota 2 not found, cannot create Gamestate Integration file.");
+			}
+		}
+
+		// When selecting the keyTextbox to enter new key, clear it
+		private void onGotMouseCapture(object sender, MouseEventArgs e) {
+			if(((TextBox)sender).Name.Equals(keyTextbox.Name)) {
+				keyTextbox.Text = "";
+			}
+		}
+
+		// Pressing on non-selectable UI causes drag if held and moved
+		protected override void OnMouseLeftButtonDown(MouseButtonEventArgs e) {
+			base.OnMouseLeftButtonDown(e);
+			this.DragMove();
+		}
+
+		// Allow any keybind except L/R alt, L/R control, L/R shift, or L/R windows key (all modifiers). Set in settings and update UI
+		private void keyTextbox_KeyDown(object sender, KeyEventArgs e) {
+			if(e.Key != Key.LeftAlt && e.Key != Key.RightAlt && e.Key != Key.LeftCtrl && e.Key != Key.RightCtrl && e.Key != Key.LeftShift && e.Key != Key.RightShift && e.Key != Key.RWin && e.Key != Key.LWin && e.Key != Key.System) {
+				Settings.Default.KeyBind = e.Key;
+				printKeys();
+			}
+		}
+
+		// Catch and skip copy/cut/paste commands
+		private void textBox_PreviewExecuted(object sender, ExecutedRoutedEventArgs e) {
+			if(e.Command == ApplicationCommands.Copy || e.Command == ApplicationCommands.Cut || e.Command == ApplicationCommands.Paste) {
+				e.Handled = true;
+			}
+		}
+
 		// Output current keybind to textbox
-		private void printKeys(Key key) {
-			keyTextbox.Text = getRealKey(key);
+		private void printKeys() {
+			keyTextbox.Text = getRealKey(Settings.Default.KeyBind);
 			if(Settings.Default.AltModifier) {
 				keyTextbox.AppendText(" + Alt");
 			}
@@ -102,15 +151,41 @@ namespace D2RoshTimer {
 			Keyboard.ClearFocus();
 		}
 
+		// Allow up to 4 digits, update textbox display, update setting, call update overlay
+		private void xyTextbox_KeyDown(object sender, KeyEventArgs e) {
+			string key = getRealKey(e.Key);
+			if((((TextBox)sender).Text.Length < 4) && (key.Equals("0") || key.Equals("1") || key.Equals("2") || key.Equals("3") || key.Equals("4") || key.Equals("5") || key.Equals("6") || key.Equals("7") || key.Equals("8") || key.Equals("9"))) {
+				if(((TextBox)sender).Name.Equals(setXTextbox.Name)) {
+					Settings.Default.OverlayXPosition = Int32.Parse(setXTextbox.Text);
+				} else if(((TextBox)sender).Name.Equals(setYTextbox.Name)) {
+					Settings.Default.OverlayYPosition = Int32.Parse(setYTextbox.Text);
+				}
+				updateOverlay();
+			} else { e.Handled = true; }
+			
+		}
+
+		// get position of key placement?
+		// Allow up to 4 digits, a seperator (, or ,), 2 more digits
+		private void sizeTextbox_KeyDown(object sender, KeyEventArgs e) {
+			string key = getRealKey(e.Key);
+			bool seperator = (setSizeTextbox.Text.IndexOf('.') != -1 || setSizeTextbox.Text.IndexOf(',') != -1);
+			if(((TextBox)sender).Name.Equals(setSizeTextbox.Name)) {
+				if(key.Equals("0") || key.Equals("1") || key.Equals("2") || key.Equals("3") || key.Equals("4") || key.Equals("5") || key.Equals("6") || key.Equals("7") || key.Equals("8") || key.Equals("9")) {
+					//substring 
+				} else if((key.Equals(".") || key.Equals(",")) && !seperator) {
+				} else { e.Handled = true; }
+				updateOverlay();
+			}
+		}
+
 		// Convert Key object to human comprehensible names
 		private string getRealKey(Key key) {
 			int virtKey = KeyInterop.VirtualKeyFromKey(key);
 			byte[] keyboardState = new byte[256];
-			GetKeyboardState(keyboardState);
-			uint scanCode = MapVirtualKey((uint)virtKey, mapType.MAPVK_VK_TO_VSC);
+			KeyboardHelper.GetKeyboardState(keyboardState);
 			StringBuilder stringBuilder = new StringBuilder(2);
-			int result = ToUnicode((uint)virtKey, scanCode, keyboardState, stringBuilder, stringBuilder.Capacity, 0);
-			switch(result) {
+			switch(KeyboardHelper.ToUnicode((uint)virtKey, KeyboardHelper.MapVirtualKey((uint)virtKey, KeyboardHelper.mapType.MAPVK_VK_TO_VSC), keyboardState, stringBuilder, stringBuilder.Capacity, 0)) {
 				case -1:
 				case 0:
 					return key.ToString();
@@ -134,66 +209,65 @@ namespace D2RoshTimer {
 			}
 		}
 
-		// Any time a user manually changes a checkbox for modifier keys, update UI and settings
+		// Give user mouse to click on position of window where to display the overlay
+		private void setOverlayLocation_Click(object sender, RoutedEventArgs e) {
+			//create overlay iwth placeholder in - will be closed/deleted whwen Done()
+		}
+
+		// When user changes a checkbox update UI and settings
 		private void modifierCheckBoxChange(object sender, RoutedEventArgs e) {
 			CheckBox box = (CheckBox)sender;
 			bool flag = box.IsChecked.Value;
-			if(box.Content.Equals("Alt")) {
+			if(box.Content.Equals(altCheckbox.Content)) {
 				Settings.Default.AltModifier = flag;
-			} else if(box.Content.Equals("Control")) {
+				printKeys();
+			} else if(box.Content.Equals(controlCheckbox.Content)) {
 				Settings.Default.ControlModifier = flag;
-			} else if(box.Content.Equals("Shift")) {
+				printKeys();
+			} else if(box.Content.Equals(shiftCheckbox.Content)) {
 				Settings.Default.ShiftModifier = flag;
-			} else {
+				printKeys();
+			} else if(box.Content.Equals(windowsCheckbox.Content)) {
 				Settings.Default.WindowsModifier = flag;
-			}
-			printKeys(Settings.Default.KeyBind);
-		}
-
-		// Used for Dota2GSI - Create config file in ..\dota\cfg folder to access json data from local dota client
-		private void createGsiFile() {
-			RegistryKey regKey = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Steam App 570\");
-			if(regKey != null) {
-				string gsiFolder = regKey.GetValue("InstallLocation") + @"\game\dota\cfg\gamestate_integration";
-				if(!Directory.Exists(gsiFolder)) {
-					Directory.CreateDirectory(gsiFolder);
-				}
-				string gsifile = gsiFolder + @"\gamestate_integration_D2RoshTimer.cfg";
-				if(!File.Exists(gsifile)) {
-					string[] contentofgsifile = {
-						"\"Dota 2 Integration Configuration\"",
-						"{",
-						"    \"uri\"           \"http://localhost:42340\"",
-						"    \"timeout\"       \"5.0\"",
-						"    \"buffer\"        \"0.1\"",
-						"    \"throttle\"      \"0.1\"",
-						"    \"heartbeat\"     \"30.0\"",
-						"    \"data\"",
-						"    {",
-						"        \"provider\"      \"0\"",
-						"        \"map\"           \"1\"",
-						"        \"player\"        \"0\"",
-						"        \"hero\"          \"0\"",
-						"        \"abilities\"     \"0\"",
-						"        \"items\"         \"0\"",
-						"    }",
-						"}",
-
-					};
-					File.WriteAllLines(gsifile, contentofgsifile);
-				}
-			} else if(Settings.Default.ErrorDisplay) {
-				MessageBox.Show("Registry key for Dota 2 not found, cannot create Gamestate Integration file.");
+				printKeys();
+			} else if(box.Content.Equals(overlayEnableCheckbox.Content)) {
+				Settings.Default.OverlayDisplay = flag;
+				updateOverlay();
+			} else if(box.Content.Equals(overlayOrientationCheckbox.Content)) {
+				Settings.Default.VerticalOverlayDisplay = flag;
+				updateOverlay();
+			} else if(box.Content.Equals(overlayButtonsCheckbox.Content)) {
+				Settings.Default.OverlayButtonDisplay = flag;
+				updateOverlay();
+			} else if(box.Content.Equals(killCheckbox.Content)) {
+				Settings.Default.KillDisplay = flag;
+				updateOverlay();
+			} else if(box.Content.Equals(aegisCheckbox.Content)) {
+				Settings.Default.AegisDisplay = flag;
+				updateOverlay();
+			} else if(box.Content.Equals(earlyCheckbox.Content)) {
+				Settings.Default.EarlyDisplay = flag;
+				updateOverlay();
+			} else if(box.Content.Equals(lateCheckbox.Content)) {
+				Settings.Default.LateDisplay = flag;
+				updateOverlay();
+			} else if(box.Content.Equals(longOutputCheckbox.Content)) {
+				Settings.Default.LongOutput = flag;
+				updateOverlay();
+			} else if(box.Content.Equals(errorOutputCheckbox.Content)) {
+				Settings.Default.ErrorOutput = flag;
+				updateOverlay();
 			}
 		}
 
 		// When registered hotkey is pressed, calculate minutes and seconds from currentTime, construct output and copy to clipboard
 		private void hotKeyManagerPressed(object sender, EventArgs e) {
+
 			// This enables the use of the key IF no modifiers are enabled, without this you are unable to use set hotkey in normal operation.
 			if(!Settings.Default.AltModifier && !Settings.Default.ControlModifier && !Settings.Default.ShiftModifier && !Settings.Default.WindowsModifier) {
 				InputSimulator keySim = new InputSimulator();
 				StringBuilder charPressed = new StringBuilder(256);
-				ToUnicode((uint)KeyInterop.VirtualKeyFromKey(Settings.Default.KeyBind), 0, new byte[256], charPressed, charPressed.Capacity, 0);
+				KeyboardHelper.ToUnicode((uint)KeyInterop.VirtualKeyFromKey(Settings.Default.KeyBind), 0, new byte[256], charPressed, charPressed.Capacity, 0);
 				keySim.Keyboard.TextEntry(charPressed.ToString());
 			}
 			TimeSpan offset = new TimeSpan(0, 0, 3);
@@ -201,7 +275,7 @@ namespace D2RoshTimer {
 			if(proc.Length > 0 && proc[0].ToString().Equals("System.Diagnostics.Process (dota2)") && DateTime.Compare(DateTime.Now, lastRun.Add(offset)) >= 0) {
 				using(GameStateListener gsl = new GameStateListener(42340)) {
 					gsl.NewGameState += onNewGameState;
-					if(!gsl.Start() && Settings.Default.ErrorDisplay) {
+					if(!gsl.Start() && Settings.Default.ErrorOutput) {
 						MessageBox.Show("GameStateListener could not start. Try running as Administrator.");
 					}
 					int tries = 0;
@@ -223,7 +297,7 @@ namespace D2RoshTimer {
 					int seconds = Math.Abs(currentTime % 60);
 					// If rosh was taken after the horn (0:00 clock time), otherwise its before and special math is needed
 					if(currentTime >= 0) {
-						if(!Settings.Default.LongOutputDisplay) {
+						if(!Settings.Default.LongOutput) {
 							killTime = minutes + ":" + seconds.ToString("D2", CultureInfo.InvariantCulture) + " ";
 							aegisTime = (minutes + 5) + ":" + seconds.ToString("D2", CultureInfo.InvariantCulture) + " ";
 							minutes += 8;
@@ -245,7 +319,7 @@ namespace D2RoshTimer {
 						int temp = 300 - Math.Abs(currentTime);
 						int newMinutes = temp / 60;
 						int newSeconds = temp % 60;
-						if(!Settings.Default.LongOutputDisplay) {
+						if(!Settings.Default.LongOutput) {
 							if(minutes != 0) {
 								killTime = "| " + minutes + ":" + seconds.ToString("D2", CultureInfo.InvariantCulture) + " ";
 							} else {
@@ -269,7 +343,22 @@ namespace D2RoshTimer {
 							lateTime = "Late Spawn " + newMinutes + ":" + newSeconds.ToString("D2", CultureInfo.InvariantCulture) + " ";
 						}
 					}
-					string data = killTime + aegisTime + earlyTime + lateTime;
+					string data = "";
+					if(Settings.Default.KillDisplay) {
+						data += killTime;
+					}
+					if(Settings.Default.AegisDisplay) {
+						data += aegisTime;
+					}
+					if(Settings.Default.EarlyDisplay) {
+						data += earlyTime;
+					}
+					if(Settings.Default.LateDisplay) {
+						data += lateTime;
+					}
+					if(Settings.Default.OverlayDisplay) {
+						createOverlay(killTime, aegisTime, earlyTime, lateTime);
+					}
 					// Reset values to ensure next use has fresh values on this run
 					currentTime = -200;
 					gamestate = DOTA_GameState.Undefined;
@@ -281,16 +370,16 @@ namespace D2RoshTimer {
 						} catch(COMException ex) { }
 					}
 					lastRun = DateTime.Now;
-				} else if (lastTime == currentTime && Settings.Default.ErrorDisplay) {
+				} else if (lastTime == currentTime && Settings.Default.ErrorOutput) {
 					MessageBox.Show("You are running when the in-game clock is the same.");
-				} else if(gamestate != DOTA_GameState.DOTA_GAMERULES_STATE_GAME_IN_PROGRESS && gamestate != DOTA_GameState.DOTA_GAMERULES_STATE_PRE_GAME && Settings.Default.ErrorDisplay) {
+				} else if(gamestate != DOTA_GameState.DOTA_GAMERULES_STATE_GAME_IN_PROGRESS && gamestate != DOTA_GameState.DOTA_GAMERULES_STATE_PRE_GAME && Settings.Default.ErrorOutput) {
 					MessageBox.Show("This only runs when loaded into a game.");
-				} else if(Settings.Default.ErrorDisplay) {
+				} else if(Settings.Default.ErrorOutput) {
 					MessageBox.Show("GSI failed to update currentTime.");
 				}
-			} else if(proc.Length == 0 && Settings.Default.ErrorDisplay) {
+			} else if(proc.Length == 0 && Settings.Default.ErrorOutput) {
 				MessageBox.Show("Dota 2 not running.");
-			} else if(Settings.Default.ErrorDisplay) {
+			} else if(Settings.Default.ErrorOutput) {
 				MessageBox.Show("You are running again too soon.");
 			}
 		}
@@ -300,6 +389,42 @@ namespace D2RoshTimer {
 			currentTime = gs.Map.ClockTime;
 			gamestate = gs.Map.GameState;
 			currentMatchID = gs.Map.MatchID;
+		}
+
+		// Create the over with kill times
+		private void createOverlay(string killTime, string aegisTime, string earlyTime, string lateTime) {
+			//get the x,y of the dota window, add x and y from settings, dynamically create textboxes for vars above
+			//after 11 minutes remove them from display
+			Overlay overlay = new Overlay();
+			overlay.Show();
+		}
+
+		//create overlay
+		private void updateOverlay() {
+
+		}
+
+		// Save settings and close window
+		private void done_Click(object sender, RoutedEventArgs e) {
+			//close/remove/delete placeholder overlay
+			if(keyTextbox.Text.Equals("")) {
+				Settings.Default.KeyBind = Key.O;
+				printKeys();
+			}
+			if(setXTextbox.Text.Equals("")) {
+				Settings.Default.OverlayXPosition = 100;//placeholder value
+				updateOverlay();
+			}
+			if(setYTextbox.Text.Equals("")) {
+				Settings.Default.OverlayYPosition = 100;//placeholder value
+				updateOverlay();
+			}
+			if(setSizeTextbox.Text.Equals("")) {
+				Settings.Default.OverlaySize = 12;//placeholder value
+			}
+			formHotkey();
+			Settings.Default.Save();
+			Application.Current.MainWindow.Hide();
 		}
 
 		// Register new hotkey
@@ -319,91 +444,57 @@ namespace D2RoshTimer {
 			}
 			HotkeyManager.Current.AddOrReplace("runTimer", Settings.Default.KeyBind, mk, hotKeyManagerPressed);
 		}
-		
-		// Output switch button click to change values
-		private void outputSwitch_Click(object sender, RoutedEventArgs e) {
-			outputSwitch();
-		}
-
-		// Switch between long form (Kill 3:34 | Aegis 8:34 | Early 11:34 | Late 14:34) and short form (3:34 8:34 11:34 14:34)
-		private void outputSwitch() {
-			string setShort = "Set to short form (3:45 8:45 11:45 14:45)", setLong = "Set to long form (Kill 3:34 | Aegis 8:34 ...)";
-			if(outputSwitchButton.Content.Equals(setShort)) {
-				Settings.Default.LongOutputDisplay = false;
-				outputSwitchButton.Content = setLong;
-			} else if(outputSwitchButton.Content.Equals(setLong)) {
-				Settings.Default.LongOutputDisplay = true;
-				outputSwitchButton.Content = setShort;
-			} else if(Settings.Default.LongOutputDisplay) {
-				Settings.Default.LongOutputDisplay = true;
-				outputSwitchButton.Content = setShort;
-			} else {
-				Settings.Default.LongOutputDisplay = false;
-				outputSwitchButton.Content = setLong;
-			}
-		}
-
-		// Error switch button click to change values
-		private void errorSwitch_Click(object sender, RoutedEventArgs e) {
-			errorSwitch();
-		}
-
-		// Enable/Disable Error Popups
-		private void errorSwitch() {
-			string disable = "Disable Error Popups", enable = "Enable Error Popups";
-			if(errorSwitchButton.Content.Equals(disable)) {
-				Settings.Default.ErrorDisplay = false;
-				errorSwitchButton.Content = enable;
-			} else if(errorSwitchButton.Content.Equals(enable)) {
-				Settings.Default.ErrorDisplay = true;
-				errorSwitchButton.Content = disable;
-			} else if(Settings.Default.ErrorDisplay) {
-				Settings.Default.ErrorDisplay = true;
-				errorSwitchButton.Content = disable;
-			} else {
-				Settings.Default.ErrorDisplay = false;
-				errorSwitchButton.Content = enable;
-			}
-		}
-
-		// Reset all settings to default 
-		private void default_Click(object sender, RoutedEventArgs e) {
-			Settings.Default.ControlModifier = false;
-			Settings.Default.ShiftModifier = false;
-			Settings.Default.WindowsModifier = false;
-			Settings.Default.AltModifier = true;
-			Settings.Default.ErrorDisplay = true;
-			errorSwitchButton.Content = "Disable Error Popups";
-			Settings.Default.LongOutputDisplay = true;
-			outputSwitchButton.Content = "Set to short form (3:45 8:45 11:45 14:45)";
-			Settings.Default.KeyBind = Key.O;
-			quietSetCheckbox();
-			printKeys(Settings.Default.KeyBind);
-		}
-
-		// Save settings and close window
-		private void done_Click(object sender, RoutedEventArgs e) {
-			if(keyTextbox.Text.Equals("")) {
-				Settings.Default.KeyBind = Key.O;
-				printKeys(Settings.Default.KeyBind);
-			}
-			formHotkey();
-			Settings.Default.Save();
-			Application.Current.MainWindow.Hide();
-		}
 
 		// Shutdown Application
 		private void close_Click(object sender, RoutedEventArgs e) {
 			Application.Current.Shutdown();
 		}
 
+		// Utilities for window controls
+		public static class WindowHelper {
+			private const int SW_RESTORE = 9;
+			[StructLayout(LayoutKind.Sequential)]
+			public struct RECT {
+				public int Left;
+				public int Top;
+				public int Right;
+				public int Bottom;
+			}
+
+			public static void bringProcessToFront(Process process) {
+				if(IsIconic(process.MainWindowHandle)) {
+					ShowWindow(process.MainWindowHandle, SW_RESTORE);
+				}
+				SetForegroundWindow(process.MainWindowHandle);
+			}
+			public static Point getWindowLoc() {
+				GetWindowRect(Process.GetProcessesByName(Globals.procName)[0].MainWindowHandle, out RECT rect);
+				return new Point(rect.Left, rect.Top);
+			}
+			public static Point getWindowRes() {
+				GetWindowRect(Process.GetProcessesByName(Globals.procName)[0].MainWindowHandle, out RECT rect);
+				return new Point(rect.Right - rect.Left, rect.Bottom - rect.Top);
+			}
+
+			[DllImport("User32.dll")]
+			private static extern bool SetForegroundWindow(IntPtr handle);
+			[DllImport("User32.dll")]
+			private static extern bool ShowWindow(IntPtr handle, int nCmdShow);
+			[DllImport("User32.dll")]
+			private static extern bool IsIconic(IntPtr handle);
+			[DllImport("User32.dll")]
+			private static extern bool GetWindowRect(IntPtr hwnd, out RECT lpRect);
+		}
+
 		// Utility for displaying characters correct from keyboard
-		public enum mapType : uint { MAPVK_VK_TO_VSC = 0x0, MAPVK_VSC_TO_VK = 0x1, MAPVK_VK_TO_CHAR = 0x2, MAPVK_VSC_TO_VK_EX = 0x3,}
-		[DllImport("user32.dll")]
-		public static extern int ToUnicode(uint wVirtKey, uint wScanCode, byte[] lpKeyState, [Out, MarshalAs(UnmanagedType.LPWStr, SizeParamIndex = 4)] StringBuilder pwszBuff, int cchBuff, uint wFlags);
-		[DllImport("user32.dll")]
-		public static extern bool GetKeyboardState(byte[] lpKeyState);
-		[DllImport("user32.dll")]
-		public static extern uint MapVirtualKey(uint uCode, mapType uMapType);
+		public static class KeyboardHelper {
+			public enum mapType : uint { MAPVK_VK_TO_VSC = 0x0, MAPVK_VSC_TO_VK = 0x1, MAPVK_VK_TO_CHAR = 0x2, MAPVK_VSC_TO_VK_EX = 0x3, }
+			[DllImport("user32.dll")]
+			public static extern int ToUnicode(uint wVirtKey, uint wScanCode, byte[] lpKeyState, [Out, MarshalAs(UnmanagedType.LPWStr, SizeParamIndex = 4)] StringBuilder pwszBuff, int cchBuff, uint wFlags);
+			[DllImport("user32.dll")]
+			public static extern bool GetKeyboardState(byte[] lpKeyState);
+			[DllImport("user32.dll")]
+			public static extern uint MapVirtualKey(uint uCode, mapType uMapType);
+		}
 	}
 }
